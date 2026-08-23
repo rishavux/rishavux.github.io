@@ -35,6 +35,15 @@
         </a>
       </div>
 
+      <!-- The only way into the dock transition — manual scrolling is
+           locked (see .scroll-locked in style.css / script.js) until
+           this is pressed, which then plays the exact same scroll-
+           driven animation a manual scroll would, just driven
+           programmatically instead of by wheel/trackpad input. -->
+      <button type="button" class="hero-scroll-btn" id="hero-scroll-btn" aria-label="Scroll down">
+        <span class="hero-scroll-chevron"></span>
+      </button>
+
       <nav class="hero-nav" id="hero-nav">
         <button class="nav-toggle" id="nav-toggle" aria-label="Toggle navigation" aria-expanded="false">
           <span></span><span></span><span></span>
@@ -56,7 +65,17 @@
   <div class="stupa-light" id="stupa-light" aria-hidden="true">
     <div class="stupa-light-glow" id="stupa-light-glow"></div>
     <div class="stupa-light-core" id="stupa-light-core"></div>
+    <div class="stupa-light-beam" id="stupa-light-beam" aria-hidden="true"></div>
   </div>
+
+  <!-- Its own top-level position:fixed element, deliberately NOT nested
+       inside #stupa-light — that element's fixed position + JS transform
+       make it a stacking context, which would cap this card's
+       backdrop-filter to only sampling #stupa-light's own (near-empty)
+       subtree instead of the real photo behind it. Position is driven
+       directly from script.js instead. Empty for now — content lands
+       here later. -->
+  <div class="hero-spotlight-card" id="hero-spotlight-card" aria-hidden="true"></div>
 
   <section class="about" id="about" hidden>
     <div class="about-intro" data-reveal="left">
@@ -154,12 +173,6 @@
   <a class="footer-email" href="mailto:rishav.ux@gmail.com">rishav.ux@gmail.com</a>
   <p class="footer-note">Rishav Gautam — Kathmandu ↔ Bay Area</p>
 </footer>
-
-<!-- DEBUG: temporary — plays the hero scroll animation smoothly and
-     deterministically, bypassing trackpad/wheel input, so it can be
-     watched without the glitchiness of live scrolling. Remove this
-     button and its handler in script.js once the animation is solid. -->
-<button type="button" id="scroll-preview-btn" class="debug-scroll-btn">▶ Preview scroll</button>
 
 <script src="script.js"></script>
 </body>

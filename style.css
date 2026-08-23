@@ -105,7 +105,11 @@
   --dock-top: 20px;
   --dock-side: 28px;
   --avatar-base: 150px;
-  --avatar-dock: 52px;
+  --avatar-dock: 66px;
+  /* Vertical center of the docked avatar circle — the nav links are
+     centered on this line so they read as sharing a row with the
+     avatar/name lockup instead of just top-aligning with it. */
+  --dock-center-y: calc(var(--dock-top) + var(--avatar-dock) / 2);
 }
 
 /* ─── RESET ─────────────────────────────────────────────── */
@@ -270,15 +274,19 @@ section { position: relative; }
   justify-content: center;
   pointer-events: none;
 }
+/* .hero-morph itself only exists now as: (a) the flex-column rest
+   layout script.js measures on load/resize, and (b) the click target
+   (its <a> href="#hero") — clicks on the avatar/name still bubble up
+   to it normally. It plays no role in live positioning any more: the
+   avatar and name below are each their own independently-animated
+   position:fixed element, driven by script.js's updateHero(), which
+   is why they need their own z-index rather than inheriting one. */
 .hero-morph {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: clamp(0.9rem, 2vw, 1.4rem);
-  transform-origin: 0 0;
-  will-change: transform;
+  gap: clamp(0.35rem, 0.8vw, 0.6rem);
   pointer-events: auto;
-  position: relative;
-  z-index: 210;
 }
 .hero-avatar {
   width: var(--avatar-base);
@@ -288,6 +296,9 @@ section { position: relative; }
   border: 3px solid rgba(255, 255, 255, 0.85);
   box-shadow: var(--shadow-soft);
   flex-shrink: 0;
+  transform-origin: 0 0;
+  will-change: transform;
+  z-index: 210;
 }
 .hero-morph-name {
   font-family: var(--font-display);
@@ -296,32 +307,16 @@ section { position: relative; }
   color: var(--surface-50);
   white-space: nowrap;
   text-shadow: 0 2px 24px rgba(0, 0, 0, 0.4);
-}
-/* Docked (fixed) state — escapes the sticky hero entirely so it
-   persists over every section for the rest of the page. No pill
-   chip anymore — it sits directly on .hero-nav-bar's shared glass. */
-.hero-morph.is-docked {
-  position: fixed;
-  top: var(--dock-top);
-  left: var(--dock-side);
-  transform: none !important;
+  transform-origin: 0 0;
+  will-change: transform;
   z-index: 210;
-}
-.hero-morph.is-docked .hero-avatar {
-  width: var(--avatar-dock);
-  height: var(--avatar-dock);
-  border-width: 2px;
-}
-.hero-morph.is-docked .hero-morph-name {
-  font-size: 1.4rem;
-  color: var(--surface-50);
-  text-shadow: 0 1px 12px rgba(0, 0, 0, 0.35);
 }
 
 .hero-nav {
   position: absolute;
-  top: var(--dock-top);
+  top: var(--dock-center-y);
   right: var(--dock-side);
+  transform: translateY(-50%);
   z-index: 200;
   opacity: 0;
   will-change: opacity;
@@ -363,11 +358,17 @@ section { position: relative; }
   font-weight: 600;
   letter-spacing: 0.02em;
   color: rgba(255, 255, 255, 0.72);
-  transition: background 0.3s var(--ease), color 0.3s var(--ease);
+  /* Subtle chip even at rest — the active link stands out with the
+     bold saffron fill below, but the other two shouldn't read as
+     plain unstyled text next to it. */
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  transition: background 0.3s var(--ease), color 0.3s var(--ease), border-color 0.3s var(--ease);
 }
-.nav-link:hover { color: var(--surface-50); }
+.nav-link:hover { color: var(--surface-50); background: rgba(255, 255, 255, 0.14); }
 .nav-link.active {
   background: var(--saffron-700);
+  border-color: var(--saffron-700);
   color: var(--ink-900);
 }
 
@@ -396,57 +397,45 @@ section { position: relative; }
   .nav-link { text-align: center; }
 }
 
-.hero-copy {
-  position: absolute;
-  top: clamp(12rem, 34vh, 16.5rem);
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: clamp(0.5rem, 1.4vw, 0.9rem);
-  text-align: center;
-  padding: 0 1.5rem;
-  will-change: opacity;
-}
-.hero-eyebrow {
-  font-family: var(--font-body);
-  font-weight: 700;
-  font-size: clamp(0.7rem, 0.5vw + 0.5rem, 0.8rem);
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: var(--saffron-500);
-  text-shadow: 0 1px 10px rgba(0, 0, 0, 0.35);
-}
-.hero-tagline {
-  max-width: 34ch;
-  font-size: clamp(0.95rem, 0.5vw + 0.8rem, 1.2rem);
-  font-weight: 500;
-  color: var(--surface-100);
-  text-shadow: 0 2px 16px rgba(0, 0, 0, 0.35);
-}
-
-.scroll-cue {
-  margin-top: clamp(0.5rem, 2vh, 1.5rem);
-  width: 40px;
-  height: 40px;
+/* The only entry point into the dock transition — position is set
+   once in script.js (below the name's rest position), fades out fast
+   once the transition starts, and stays fixed so it always escapes
+   the pinned hero cleanly. Bigger and bolder than the old scroll-cue
+   it replaces, since this is a real "click here" call to action now,
+   not a passive hint. */
+.hero-scroll-btn {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 64px;
+  height: 64px;
   border-radius: 50%;
   border: 1px solid rgba(255, 255, 255, 0.55);
+  background: rgba(21, 21, 21, 0.4);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   display: flex;
   align-items: center;
   justify-content: center;
+  z-index: 210;
+  cursor: pointer;
   animation: bob 2.4s ease-in-out infinite;
+  transition: background 0.3s var(--ease), border-color 0.3s var(--ease);
 }
-.scroll-cue .chevron {
-  width: 10px;
-  height: 10px;
-  border-right: 2px solid var(--surface-50);
-  border-bottom: 2px solid var(--surface-50);
-  transform: rotate(45deg) translate(-2px, -2px);
+.hero-scroll-btn:hover {
+  background: rgba(21, 21, 21, 0.6);
+  border-color: rgba(255, 255, 255, 0.85);
+}
+.hero-scroll-chevron {
+  width: 16px;
+  height: 16px;
+  border-right: 3px solid var(--surface-50);
+  border-bottom: 3px solid var(--surface-50);
+  transform: rotate(45deg) translate(-3px, -3px);
 }
 @keyframes bob {
   0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(8px); }
+  50% { transform: translateY(10px); }
 }
 
 @media (max-width: 760px) {
@@ -496,6 +485,41 @@ section { position: relative; }
 }
 @media (prefers-reduced-motion: reduce) {
   .stupa-light-glow, .stupa-light-core { animation: none; }
+}
+
+/* Light shaft off the stupa's light onto the glass card (Figma node
+   107:15) — a clip-path wedge, not a fixed image, so it always reaches
+   and matches the card exactly. Geometry (position/size/clip-path/blur)
+   is computed live in remeasureStupaLight() from the glow + card anchor
+   points; only the gradient fill (color stops lifted from the original
+   Figma beam asset) lives here. */
+.stupa-light-beam {
+  position: absolute;
+  left: 0;
+  top: 0;
+  mix-blend-mode: screen;
+  background: linear-gradient(90deg,
+    rgba(255, 230, 153, 0.55) 0%,
+    rgba(255, 209, 122, 0.3) 30%,
+    rgba(255, 217, 153, 0.1) 65%,
+    rgba(255, 255, 255, 0) 100%);
+}
+
+/* "Glass Frame" from the same Figma node — empty for now, content
+   (bio/eyebrow) lands inside it later. Its own top-level position:fixed
+   element (see index.html comment for why it's not nested in
+   #stupa-light) — script.js drives left/top directly off the light's
+   live coordinates so it still stays anchored to the glow. */
+.hero-spotlight-card {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 160;
+  pointer-events: none;
+  border-radius: 32px;
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -757,24 +781,3 @@ section { position: relative; }
   letter-spacing: 0.02em;
 }
 
-/* ═══════════════════════════════════════════════════════════
-   DEBUG — remove along with #scroll-preview-btn in index.html
-   and its handler in script.js once the scroll animation is
-   solid and this is no longer needed for previewing it.
-═══════════════════════════════════════════════════════════ */
-.debug-scroll-btn {
-  position: fixed;
-  right: 1rem;
-  bottom: 1rem;
-  z-index: 999;
-  padding: 0.6rem 1rem;
-  border: 1px dashed rgba(255, 140, 0, 0.8);
-  border-radius: 8px;
-  background: rgba(20, 20, 20, 0.85);
-  color: #ffb347;
-  font-family: var(--font-body);
-  font-size: 0.8rem;
-  font-weight: 600;
-  cursor: pointer;
-}
-.debug-scroll-btn:disabled { opacity: 0.6; cursor: default; }
