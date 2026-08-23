@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Rishav Gautam — UX Designer</title>
+<meta name="description" content="Rishav Gautam, UX designer — portfolio and case studies." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400;1,9..144,500&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<div class="scroll-progress" id="scroll-progress" aria-hidden="true"></div>
+
+<main>
+
+  <div class="hero-pin" id="hero-pin">
+    <section class="hero" id="hero">
+      <img class="hero-bg-img" id="hero-bg-img" src="images/hero-bg.jpg" alt="" aria-hidden="true" />
+      <div class="hero-scrim"></div>
+      <div class="hero-nav-bar" id="hero-nav-bar" aria-hidden="true"></div>
+
+      <!-- This is the whole trick: one element, morphing continuously with
+           scroll instead of swapping between a "big hero" version and a
+           "small nav" version. It starts centered and large, and scroll
+           progress alone drives it shrinking + traveling into the nav
+           corner, where it docks (position: fixed) and stays for the
+           rest of the page. -->
+      <div class="hero-morph-row">
+        <a class="hero-morph" id="hero-morph" href="#hero">
+          <img class="hero-avatar" src="images/profile.jpg" alt="Rishav Gautam" />
+          <span class="hero-morph-name">Rishav Gautam</span>
+        </a>
+      </div>
+
+      <nav class="hero-nav" id="hero-nav">
+        <button class="nav-toggle" id="nav-toggle" aria-label="Toggle navigation" aria-expanded="false">
+          <span></span><span></span><span></span>
+        </button>
+        <ul class="nav-links" id="nav-links">
+          <li><a href="#hero" class="nav-link active" data-section="hero">Home</a></li>
+          <li><a href="#about" class="nav-link" data-section="about">About Me</a></li>
+          <li><a href="#projects" class="nav-link" data-section="projects">Projects</a></li>
+        </ul>
+      </nav>
+    </section>
+  </div>
+
+  <!-- Embedded pixel-for-pixel in hero-bg.jpg (see remeasureStupaLight /
+       updateStupaLight in script.js) — sized and positioned by the same
+       object-fit:cover math as the background pan, recalculated every
+       scroll frame, so it scales and moves with the photo exactly, at
+       any viewport size or scroll position. -->
+  <div class="stupa-light" id="stupa-light" aria-hidden="true">
+    <div class="stupa-light-glow" id="stupa-light-glow"></div>
+    <div class="stupa-light-core" id="stupa-light-core"></div>
+  </div>
+
+  <section class="about" id="about" hidden>
+    <div class="about-intro" data-reveal="left">
+      <div class="about-portrait-wrap">
+        <img class="about-portrait" src="images/about-portrait.jpg" alt="Rishav Gautam trekking above a glacial lake in the Nepal Himalayas" />
+        <img class="about-inset" src="images/about-stupa.jpg" alt="Boudhanath Stupa lit up at night under a full moon" />
+      </div>
+      <div class="about-copy" data-reveal="right">
+        <p class="eyebrow accent-saffron">About Me</p>
+        <h2>Grown in the Himalayas, working in the Bay.</h2>
+        <p>I grew up in Kathmandu, in the shadow of the Himalayas, and now design products from the Bay Area. Every project I take on starts the way a mountain does — from the ground up, one honest structural decision at a time.</p>
+        <p>I care about interfaces that hold up under real use: a booking flow for a family-run beauty studio, an AI-assisted tool for property teams, systems that stay legible no matter how much gets added to them later. Outside of work I'm usually planning the next trek, the next temple, or the next place that looks nothing like home and somehow still feels like it.</p>
+        <div class="about-tags">
+          <span class="tag accent-red">UX Design</span>
+          <span class="tag accent-saffron">Product Thinking</span>
+          <span class="tag accent-green">Systems</span>
+          <span class="tag accent-blue">Travel</span>
+        </div>
+      </div>
+    </div>
+
+    <figure class="journey-band" data-reveal="clip">
+      <img src="images/isomorphism-journey.jpg" alt="A single blended skyline showing Boudhanath Stupa and the Himalayas by night transitioning into the Golden Gate Bridge and San Francisco by day" loading="lazy" />
+      <figcaption>Kathmandu → San Francisco. Same sky, different mountains.</figcaption>
+    </figure>
+  </section>
+
+  <div class="travel-pin" id="travel-pin" hidden>
+    <div class="travel-viewport">
+      <h3 class="travel-heading">Wherever I end up, I go looking for the view.</h3>
+      <div class="travel-track" id="travel-track">
+        <figure class="travel-item accent-red">
+          <img src="images/travel-nachi.jpg" alt="Nachi Falls and a three-story pagoda in the mist, Japan" loading="lazy" />
+          <figcaption>Nachi, Japan</figcaption>
+        </figure>
+        <figure class="travel-item accent-blue">
+          <img src="images/travel-kiyomizu.jpg" alt="View toward Kiyomizu-dera pagoda above Kyoto" loading="lazy" />
+          <figcaption>Kyoto, Japan</figcaption>
+        </figure>
+        <figure class="travel-item accent-green">
+          <img src="images/travel-waterfall.jpg" alt="Waterfalls through pine trees, Northern California" loading="lazy" />
+          <figcaption>Burney Falls, CA</figcaption>
+        </figure>
+        <figure class="travel-item accent-saffron">
+          <img src="images/travel-yosemite.jpg" alt="Yosemite Valley lit gold at sunset" loading="lazy" />
+          <figcaption>Yosemite, CA</figcaption>
+        </figure>
+        <figure class="travel-item accent-blue">
+          <img src="images/travel-seashore.jpg" alt="Rocky coastline and sea stacks along the Japanese coast" loading="lazy" />
+          <figcaption>San'in Coast, Japan</figcaption>
+        </figure>
+        <figure class="travel-item accent-saffron">
+          <img src="images/about-flight.jpg" alt="View from an airplane window above the clouds and mountains" loading="lazy" />
+          <figcaption>Somewhere in between</figcaption>
+        </figure>
+        <figure class="travel-item accent-red">
+          <img src="images/travel-sunset.jpg" alt="A glowing cloud reflected on a calm sea at sunset" loading="lazy" />
+          <figcaption>Somewhere, at dusk</figcaption>
+        </figure>
+      </div>
+    </div>
+  </div>
+
+  <section class="projects" id="projects" hidden>
+    <p class="eyebrow" data-reveal="up">Projects</p>
+    <h2 class="projects-heading" data-reveal="up">Case studies</h2>
+    <div class="project-grid">
+      <a class="project-card accent-red" href="https://rishavux.github.io/ez-case-study/" target="_blank" rel="noopener" data-reveal="left">
+        <div class="project-thumb">
+          <img src="images/project-ezbrow.png" alt="EZ Brow & Beauty mobile app home screen" loading="lazy" />
+        </div>
+        <div class="project-body">
+          <h3>EZ Brow &amp; Beauty</h3>
+          <p>A booking-first redesign for a small SF beauty studio — built around trust, warmth, and a "beauty made easy" promise.</p>
+          <span class="project-cta">View case study →</span>
+        </div>
+      </a>
+      <a class="project-card accent-blue" href="https://rishavux.github.io/pp-case-study/" target="_blank" rel="noopener" data-reveal="right">
+        <div class="project-thumb">
+          <img src="images/project-propertypixel.webp" alt="Property Pixel product screens across desktop, tablet, and phone" loading="lazy" />
+        </div>
+        <div class="project-body">
+          <h3>Property Pixel</h3>
+          <p>AI-assisted property photo enhancement — turning listing photos into publish-ready visuals in under 60 seconds.</p>
+          <span class="project-cta">View case study →</span>
+        </div>
+      </a>
+    </div>
+  </section>
+
+</main>
+
+<footer class="site-footer" hidden>
+  <span class="eyebrow accent-saffron footer-eyebrow">Let's talk</span>
+  <a class="footer-email" href="mailto:rishav.ux@gmail.com">rishav.ux@gmail.com</a>
+  <p class="footer-note">Rishav Gautam — Kathmandu ↔ Bay Area</p>
+</footer>
+
+<!-- DEBUG: temporary — plays the hero scroll animation smoothly and
+     deterministically, bypassing trackpad/wheel input, so it can be
+     watched without the glitchiness of live scrolling. Remove this
+     button and its handler in script.js once the animation is solid. -->
+<button type="button" id="scroll-preview-btn" class="debug-scroll-btn">▶ Preview scroll</button>
+
+<script src="script.js"></script>
+</body>
+</html>
