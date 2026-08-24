@@ -71,6 +71,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const stupaLightGlow = document.getElementById('stupa-light-glow');
   const stupaLightCore = document.getElementById('stupa-light-core');
   const stupaLightBeam = document.getElementById('stupa-light-beam');
+  const stupaLightBeamFar = document.getElementById('stupa-light-beam-far');
   const heroSpotlightCard = document.getElementById('hero-spotlight-card');
 
   const rootStyles = getComputedStyle(document.documentElement);
@@ -231,12 +232,36 @@ document.addEventListener('DOMContentLoaded', () => {
     const beamW = cardLeft;
     const beamH = cardH;
     const apexYPct = clamp01(-cardTop / cardH) * 100;
-    stupaLightBeam.style.left = '0px';
-    stupaLightBeam.style.top = `${cardTop}px`;
-    stupaLightBeam.style.width = `${beamW}px`;
-    stupaLightBeam.style.height = `${beamH}px`;
-    stupaLightBeam.style.clipPath = `polygon(0 ${apexYPct}%, 100% 0%, 100% 100%)`;
-    stupaLightBeam.style.filter = `blur(${beamH * 0.08}px)`;
+    /* Two identically-shaped/positioned layers (see index.html) — the
+       --near one lightly blurred (still reads as a fairly defined
+       shaft close to the glow), the --far one heavily blurred (soft,
+       diffuse, genuinely feathers the clip-path wedge's edges instead
+       of just fading at the tip). style.css's mask-image crossfades
+       which one is actually visible along the beam's length, so
+       together they read as blur increasing with distance from the
+       core rather than one uniformly-blurred hard-edged shape. */
+    [
+      { el: stupaLightBeam, blurFactor: 0.05 },
+      { el: stupaLightBeamFar, blurFactor: 0.28 },
+    ].forEach(({ el, blurFactor }) => {
+      el.style.left = '0px';
+      el.style.top = `${cardTop}px`;
+      el.style.width = `${beamW}px`;
+      el.style.height = `${beamH}px`;
+      el.style.clipPath = `polygon(0 ${apexYPct}%, 100% 0%, 100% 100%)`;
+      el.style.filter = `blur(${beamH * blurFactor}px)`;
+      /* Box stays at its FULL final size always — the clip-path wedge
+         above is expressed in percentages of this box, so keeping the
+         box fixed keeps that wedge's true taper/proportions correct.
+         The reveal (renderStupaReveal below) instead scales the whole
+         already-correctly-shaped wedge via transform, anchored on this
+         exact apex point — same "opening up" language as the light
+         source, and the anchor means the apex (nearest the glow) stays
+         visually pinned in place while the rest of the cone flares open
+         around it, in both reach and spread at once, rather than only
+         extending sideways at a fixed height. */
+      el.style.transformOrigin = `0% ${apexYPct}%`;
+    });
   }
 
   function updateStupaLight(panPct) {
@@ -244,6 +269,71 @@ document.addEventListener('DOMContentLoaded', () => {
     const yPx = (STUPA_TOP_ROW - windowTopOrig) * lightScale;
     stupaLight.style.transform = `translate(${lightXPx}px, ${yPx}px)`;
     heroSpotlightCard.style.top = `${yPx + cardTopLocal}px`;
+  }
+
+  /* ═══════════════════════════════════════════════════════════
+     STUPA LIGHT REVEAL — toggles with the hero button / docked name
+     The light/beam/card render fully hidden (see their CSS defaults)
+     until the hero's down-arrow is clicked, then animate in, in sync
+     with that same click-triggered scroll — renderStupaReveal is
+     passed to animateScrollTo() as its onProgress callback below
+     (down button) or wrapped to run in reverse (docked name, "back to
+     top"), so it's driven by the exact same eased 0→1 value already
+     moving the page in either direction, not a second/independent
+     scroll listener. Going up resets it back to fully hidden, so the
+     next trip down plays the whole intro again — see the click
+     handlers near the bottom of this file for the reverse wrapper.
+     remeasureStupaLight() above still owns all the FINAL geometry
+     (sizes, positions, the beam's clip-path wedge shape) — this only
+     ever gates how much of that already-computed geometry is
+     currently visible, via three overlapping phases of one shared
+     progress value (same smoothstep-phase-split idiom as the avatar/
+     name dock's sizeP/rotateP/travelP): the light fades on first, the
+     beam starts extending while the light is still settling in, and
+     the card only starts uncovering once the beam is mostly across.
+     Pure function of t — safe to call with any value, any number of
+     times, in either direction. */
+  let stupaRevealP = 0;
+
+  function renderStupaReveal(t) {
+    stupaRevealP = t;
+    const lightP = smoothstep(0, 0.4, t);
+    const beamP = smoothstep(0.15, 0.75, t);
+    const cardP = smoothstep(0.55, 1, t);
+
+    /* "Opening up" rather than panning in: scale from 0 → 1 (an iris/
+       aperture growing open), combined with the opacity fade, so the
+       dominant read is expansion, not the lateral motion already
+       coming from #stupa-light's own scroll-driven pan transform
+       (updateStupaLight — untouched, still just moves the parent).
+       translate(-50%, -50%) is glow/core's own CSS centering trick
+       (keeps the growing circle centered on the light's x/y instead
+       of growing from its top-left corner) — it has to be repeated
+       here since setting .style.transform from JS replaces the
+       stylesheet's transform entirely rather than adding to it. */
+    const lightTransform = `translate(-50%, -50%) scale(${lightP})`;
+    stupaLightGlow.style.transform = lightTransform;
+    stupaLightCore.style.transform = lightTransform;
+    stupaLightGlow.style.opacity = String(lightP);
+    stupaLightCore.style.opacity = String(lightP);
+    /* Beam "opens up" the same way as the light — scale(0→1) anchored
+       on its own apex point (transform-origin set once in
+       remeasureStupaLight, right at the glow), not a width change, so
+       the cone flares open in reach AND spread together instead of
+       just sliding rightward at a fixed height. Both layers (near/far
+       blur, see remeasureStupaLight + style.css) move as one unit. */
+    const beamTransform = `scale(${beamP})`;
+    stupaLightBeam.style.transform = beamTransform;
+    stupaLightBeamFar.style.transform = beamTransform;
+    stupaLightBeam.style.opacity = String(beamP);
+    stupaLightBeamFar.style.opacity = String(beamP);
+    /* Card unravels left-to-right, starting exactly where the beam
+       terminates (the card's left edge) — right-side clip shrinks
+       from 100% (nothing visible) to 0% (fully visible) as cardP goes
+       0→1, so it reads as the beam's leading edge uncovering the
+       card, not the card just materializing. */
+    heroSpotlightCard.style.clipPath = `inset(0 ${(1 - cardP) * 100}% 0 0)`;
+    stupaLight.classList.toggle('is-lit', t >= 1);
   }
 
   let avatarRestSize = 0;
@@ -480,6 +570,12 @@ document.addEventListener('DOMContentLoaded', () => {
     remeasureHeroMorph();
     remeasureTravel();
     remeasureStupaLight();
+    /* Reapply whatever reveal progress we're currently at (0 before
+       the first reveal or after resetting via the docked name, 1 once
+       fully revealed) against the freshly-recomputed geometry —
+       otherwise a resize mid-transition would snap the beam/card back
+       to their un-revealed CSS defaults. */
+    renderStupaReveal(stupaRevealP);
     onScroll();
   }
   window.addEventListener('scroll', onScroll, { passive: true });
@@ -487,6 +583,7 @@ document.addEventListener('DOMContentLoaded', () => {
   remeasureHeroMorph();
   remeasureTravel();
   remeasureStupaLight();
+  renderStupaReveal(0);
   onScroll();
 
   /* ═══════════════════════════════════════════════════════════
@@ -555,24 +652,27 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   /* ═══════════════════════════════════════════════════════════
-     HERO SCROLL BUTTON
-     The only trigger for the dock transition — user scroll input stays
-     blocked (see blockScrollInput above) permanently, this button and
-     nav-link anchor clicks are the only way to move the page. Plays
-     the exact same scroll-driven animation a manual scroll through
-     #hero-pin would (animating window.scrollTo from the current
-     position all the way to the end of the pin, in one continuous
-     eased pass), so updateHero() drives the whole thing exactly as it
-     already does for real scrolling. */
-  let heroScrollRunning = false;
-  heroScrollBtn.addEventListener('click', () => {
-    if (heroScrollRunning) return;
-    heroScrollRunning = true;
+     PROGRAMMATIC SCROLL — hero button (down) + docked name (up)
+     These are the only two triggers for moving the page — user scroll
+     input stays blocked (see blockScrollInput above) permanently, and
+     the scrollbar itself is hidden (see style.css) so there's no
+     thumb to drag either. Both ends of the trip play the exact same
+     kind of animation a manual scroll would (animating window.scrollTo
+     in one continuous eased pass), so updateHero() drives the whole
+     thing exactly as it already does for real scrolling — a single
+     shared `scrollAnimating` flag stops the two from overlapping if
+     both get triggered in quick succession. The optional onProgress
+     callback (used only by the down button, to drive the stupa-light
+     reveal) gets the same eased 0→1 value driving the scroll itself,
+     every frame — piggybacking on this loop instead of a second
+     scroll listener, so there's nothing else to conflict with. */
+  let scrollAnimating = false;
+  function animateScrollTo(endY, onProgress, duration = 2800) {
+    if (scrollAnimating) return;
+    scrollAnimating = true;
     heroScrollBtn.disabled = true;
 
     const startY = window.scrollY;
-    const pinScrollable = heroPin.offsetHeight - window.innerHeight;
-    const endY = heroPin.offsetTop + pinScrollable;
 
     /* Force instant scrolling for the duration of this hand-rolled
        animation — CSS `scroll-behavior: smooth` (set globally on html,
@@ -584,10 +684,16 @@ document.addEventListener('DOMContentLoaded', () => {
     document.documentElement.style.scrollBehavior = 'auto';
     const scrollNow = (y) => window.scrollTo({ top: y, left: 0, behavior: 'auto' });
 
+    function finish() {
+      document.documentElement.style.scrollBehavior = prevScrollBehavior;
+      heroScrollBtn.disabled = false;
+      scrollAnimating = false;
+    }
+
     if (prefersReducedMotion) {
       scrollNow(endY);
-      document.documentElement.style.scrollBehavior = prevScrollBehavior;
-      heroScrollRunning = false;
+      if (onProgress) onProgress(1);
+      finish();
       return;
     }
 
@@ -595,20 +701,41 @@ document.addEventListener('DOMContentLoaded', () => {
        to hesitate at. A two-stage version (fast/slow split at DOCK_AT)
        was tried, but each stage decelerating to a near-stop before the
        next one re-accelerated read as the animation pausing partway. */
-    const duration = 3000;
     const startTime = performance.now();
 
     function step(now) {
       const t = clamp01((now - startTime) / duration);
       const eased = t * t * (3 - 2 * t);
       scrollNow(startY + (endY - startY) * eased);
+      if (onProgress) onProgress(eased);
       if (t < 1) {
         requestAnimationFrame(step);
       } else {
-        document.documentElement.style.scrollBehavior = prevScrollBehavior;
-        heroScrollRunning = false;
+        finish();
       }
     }
     requestAnimationFrame(step);
+  }
+
+  heroScrollBtn.addEventListener('click', () => {
+    const pinScrollable = heroPin.offsetHeight - window.innerHeight;
+    animateScrollTo(heroPin.offsetTop + pinScrollable, renderStupaReveal);
+  });
+
+  /* The docked avatar/name lockup doubles as a "back to top" toggle —
+     same animated scroll as the button above, just in reverse, instead
+     of relying on the browser's own (much faster, un-eased-with-our-
+     math) native smooth-scroll for the #hero anchor jump. Resets the
+     stupa-light reveal back to fully hidden as it goes, playing it
+     backwards in sync with the same eased scroll: startP (wherever the
+     reveal actually was when clicked — usually 1, but this stays
+     correct even if clicked mid-reveal) ramps down to 0 as `eased`
+     ramps 0→1, so the next trip down plays the whole intro again. */
+  heroMorph.addEventListener('click', (e) => {
+    e.preventDefault();
+    const startP = stupaRevealP;
+    animateScrollTo(heroPin.offsetTop, (eased) => {
+      renderStupaReveal(startP * (1 - eased));
+    }, 1700);
   });
 });

@@ -65,7 +65,14 @@
   <div class="stupa-light" id="stupa-light" aria-hidden="true">
     <div class="stupa-light-glow" id="stupa-light-glow"></div>
     <div class="stupa-light-core" id="stupa-light-core"></div>
-    <div class="stupa-light-beam" id="stupa-light-beam" aria-hidden="true"></div>
+    <!-- Two layers, not one — a near (sharper) wedge that dominates
+         close to the glow and a far (heavier blur) wedge that fades
+         in and takes over toward the card, cross-faded via mask-image
+         in style.css. Composited together this reads as blur that
+         increases with distance, instead of one uniformly-blurred
+         hard-edged shape. See remeasureStupaLight() in script.js. -->
+    <div class="stupa-light-beam stupa-light-beam--near" id="stupa-light-beam" aria-hidden="true"></div>
+    <div class="stupa-light-beam stupa-light-beam--far" id="stupa-light-beam-far" aria-hidden="true"></div>
   </div>
 
   <!-- Its own top-level position:fixed element, deliberately NOT nested

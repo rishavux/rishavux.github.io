@@ -114,7 +114,20 @@
 
 /* ─── RESET ─────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html { scroll-behavior: smooth; }
+/* Navigation only ever happens via #hero-scroll-btn or a nav link
+   (see blockScrollInput in script.js) — the scrollbar itself is
+   hidden so there's no thumb to drag. Dragging it would bypass
+   blockScrollInput entirely (it only intercepts wheel/touch/keydown)
+   and feed the scroll-driven hero morph huge, un-eased jumps in
+   scrollY, snapping the avatar/background/light instead of animating
+   them smoothly. The page is still genuinely scrollable underneath —
+   only the visible scrollbar affordance is removed. */
+html {
+  scroll-behavior: smooth;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* old Edge/IE */
+}
+html::-webkit-scrollbar { display: none; } /* Chrome/Safari/new Edge */
 body {
   background: var(--surface-100);
   color: var(--ink);
@@ -455,6 +468,13 @@ section { position: relative; }
   z-index: 160;
   pointer-events: none;
 }
+/* Hidden until the one-shot reveal fades it in (see
+   renderStupaReveal/playStupaReveal in script.js, triggered by the
+   hero scroll button) — opacity is driven by JS during the fade, then
+   handed off to the pulse animation below once #stupa-light gets
+   .is-lit. Starting hidden (rather than always-on) is also what fixes
+   the card peeking in at the top of the page before the user ever
+   reaches this section — see .hero-spotlight-card below. */
 .stupa-light-glow {
   position: absolute;
   left: 0;
@@ -467,7 +487,7 @@ section { position: relative; }
     rgba(255, 193, 7, 0.24) 65%,
     rgba(255, 193, 7, 0) 100%);
   filter: blur(1px);
-  animation: stupa-light-pulse 3.2s ease-in-out infinite;
+  opacity: 0;
 }
 .stupa-light-core {
   position: absolute;
@@ -477,6 +497,16 @@ section { position: relative; }
   border-radius: 50%;
   background: radial-gradient(circle, #fffef4 0%, #fff176 55%, rgba(255, 241, 118, 0) 100%);
   box-shadow: 0 0 14px 5px rgba(255, 230, 90, 0.8), 0 0 34px 14px rgba(255, 200, 40, 0.45);
+  opacity: 0;
+}
+/* The pulse can't start until the one-shot fade-in has actually
+   finished and JS adds .is-lit — otherwise the keyframe's own opacity
+   values would fight the JS-driven fade every frame. Same specificity
+   (1 id + 2 classes) as the reduced-motion override below, so source
+   order decides and reduced motion — which never adds a moving pulse
+   at all — still wins for anyone who has it set. */
+#stupa-light.is-lit .stupa-light-glow,
+#stupa-light.is-lit .stupa-light-core {
   animation: stupa-light-pulse 3.2s ease-in-out infinite;
 }
 @keyframes stupa-light-pulse {
@@ -484,32 +514,71 @@ section { position: relative; }
   50% { opacity: 0.7; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .stupa-light-glow, .stupa-light-core { animation: none; }
+  #stupa-light.is-lit .stupa-light-glow,
+  #stupa-light.is-lit .stupa-light-core {
+    animation: none;
+  }
 }
 
 /* Light shaft off the stupa's light onto the glass card (Figma node
    107:15) — a clip-path wedge, not a fixed image, so it always reaches
-   and matches the card exactly. Geometry (position/size/clip-path/blur)
-   is computed live in remeasureStupaLight() from the glow + card anchor
-   points; only the gradient fill (color stops lifted from the original
-   Figma beam asset) lives here. */
+   and matches the card exactly. Geometry (position/size/clip-path,
+   both layers identical) is computed live in remeasureStupaLight()
+   from the glow + card anchor points, ALWAYS at full final size — the
+   reveal only ever scales/fades it open (same "opening up" language
+   as the light source), never resizes it.
+   Gradient stops front-loaded (most of the falloff happens in the
+   first ~45%, then a long soft tail) rather than an even linear
+   fade — real light intensity drops fast near the source and flattens
+   out, not a straight ramp. Shared by both the --near and --far
+   layers below; what differs between them is blur amount and which
+   portion of the length each is masked to own. */
 .stupa-light-beam {
   position: absolute;
   left: 0;
   top: 0;
+  transform: scale(0);
+  opacity: 0;
   mix-blend-mode: screen;
   background: linear-gradient(90deg,
-    rgba(255, 230, 153, 0.55) 0%,
-    rgba(255, 209, 122, 0.3) 30%,
-    rgba(255, 217, 153, 0.1) 65%,
-    rgba(255, 255, 255, 0) 100%);
+    rgba(255, 238, 200, 0.75) 0%,
+    rgba(255, 225, 170, 0.5) 6%,
+    rgba(255, 215, 150, 0.32) 14%,
+    rgba(255, 205, 140, 0.18) 26%,
+    rgba(255, 200, 140, 0.09) 45%,
+    rgba(255, 200, 140, 0.03) 70%,
+    rgba(255, 200, 140, 0) 100%);
+}
+/* Sharper (small-blur) layer, masked to own roughly the first half of
+   the beam's length — dominates right around the glow, where a real
+   light source still reads as a fairly defined shaft. Fades out via
+   mask alpha (not a hard cutoff) well before the card. Blur amount
+   itself (filter) is set in remeasureStupaLight() since it depends on
+   the live beamH/scale, same as the rest of this element's geometry. */
+.stupa-light-beam--near {
+  mask-image: linear-gradient(90deg, black 0%, black 45%, transparent 80%);
+  -webkit-mask-image: linear-gradient(90deg, black 0%, black 45%, transparent 80%);
+}
+/* Heavily-blurred layer, masked to own roughly the back half — invisible
+   near the glow, crossfades in as the near layer fades out, and carries
+   the beam the rest of the way to the card with soft, diffuse edges
+   (blur genuinely feathers this layer's clip-path wedge, not just its
+   far tip) instead of the original single hard-edged shape. */
+.stupa-light-beam--far {
+  mask-image: linear-gradient(90deg, transparent 0%, transparent 25%, black 65%, black 100%);
+  -webkit-mask-image: linear-gradient(90deg, transparent 0%, transparent 25%, black 65%, black 100%);
 }
 
 /* "Glass Frame" from the same Figma node — empty for now, content
    (bio/eyebrow) lands inside it later. Its own top-level position:fixed
    element (see index.html comment for why it's not nested in
    #stupa-light) — script.js drives left/top directly off the light's
-   live coordinates so it still stays anchored to the glow. */
+   live coordinates so it still stays anchored to the glow. Starts
+   fully clipped (invisible) — the one-shot reveal unravels it left-to-
+   right, starting from the left edge where the beam terminates, in
+   sync with the beam reaching it, rather than a plain opacity fade.
+   This also fixes the bug where the card was visibly peeking in near
+   the top of the page before the reveal ever played. */
 .hero-spotlight-card {
   position: fixed;
   left: 0;
@@ -520,6 +589,7 @@ section { position: relative; }
   background: rgba(255, 255, 255, 0.08);
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
+  clip-path: inset(0 100% 0 0);
 }
 
 /* ═══════════════════════════════════════════════════════════
