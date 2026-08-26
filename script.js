@@ -302,21 +302,18 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  /* Buttons row AND the role/location row above it are both pinned to
-     the exact rendered width of the "Intelligence, Behavior & Culture"
-     line — clearing the inline widths first so the highlight can size
-     to its own text naturally before being measured, otherwise a stale
-     width from a previous (larger) viewport would lock it too wide.
-     Giving both rows the same width, with matching flex:1 1 0 items
-     and gap (see style.css), is what actually stacks "My work spans"
-     directly over the My Projects button rather than just sharing a
-     center point with it. */
+  /* The chip row AND the About Me / Projects buttons row below it are
+     both pinned to the exact rendered width of the "Intelligence,
+     Behavior & Culture" line — clearing the inline widths first so
+     the highlight can size to its own text naturally before being
+     measured, otherwise a stale width from a previous (larger)
+     viewport would lock it too wide. */
   function syncSpotlightActionsWidth() {
-    heroSpotlightActions.style.width = '';
     heroSpotlightMeta.style.width = '';
+    heroSpotlightActions.style.width = '';
     const w = `${heroSpotlightHighlight.offsetWidth}px`;
-    heroSpotlightActions.style.width = w;
     heroSpotlightMeta.style.width = w;
+    heroSpotlightActions.style.width = w;
   }
 
   function updateStupaLight(panPct) {
@@ -685,11 +682,20 @@ document.addEventListener('DOMContentLoaded', () => {
   remeasureTravel();
   remeasureStupaLight();
   renderStupaReveal(0);
-  /* Fraunces (the highlight line's font) loads async — re-sync once it's
-     actually in, since a fallback-font measurement taken before then
-     would leave the buttons row a few px off from the real text width. */
+  /* Balthazar/Baloo 2/Fraunces (headline, chip values, and button
+     labels) all load async — a fallback-font measurement taken before
+     they're in would leave both the buttons row a few px off from the
+     real text width AND, more visibly, heroSpotlightCard's own height
+     locked to the fallback-font content height. Since .hero-spotlight-
+     content isn't flex-centered inside the card, that stale height
+     shows up as top-aligned content with a big dead gap below the
+     buttons instead of matching top/bottom padding — full remeasure
+     (which also re-syncs the widths) fixes both. */
   if (document.fonts && document.fonts.ready) {
-    document.fonts.ready.then(syncSpotlightActionsWidth);
+    document.fonts.ready.then(() => {
+      remeasureStupaLight();
+      renderStupaReveal(stupaRevealP);
+    });
   }
   onScroll();
 
@@ -884,7 +890,6 @@ document.addEventListener('DOMContentLoaded', () => {
     projectsNavBackBtn,
     document.querySelector('.nav-link[data-section="hero"]'),
     document.querySelector('.nav-link[data-section="about"]'),
-    document.querySelector('.hero-spotlight-btn--secondary'),
   ];
 
   function openProjects(e) {

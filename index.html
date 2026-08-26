@@ -7,7 +7,7 @@
 <meta name="description" content="Rishav Gautam, UX designer — portfolio and case studies." />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400;1,9..144,500&family=Montserrat:wght@400;500;600;700&family=Cinzel:wght@500&family=Baloo+2:wght@500;600;700&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400;1,9..144,500&family=Montserrat:wght@400;500;600;700&family=Cinzel:wght@500&family=Baloo+2:wght@500;600;700&family=Balthazar&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -120,22 +120,38 @@
       <p class="hero-spotlight-highlight" id="hero-spotlight-highlight">Intelligence, Behavior &amp; Culture</p>
 
       <div class="hero-spotlight-meta" id="hero-spotlight-meta">
-        <div class="hero-spotlight-meta-item">
-          <img class="hero-spotlight-meta-icon" src="images/role-icon.svg" alt="" aria-hidden="true" />
-          <p class="hero-spotlight-meta-line">My work spans</p>
-          <p class="hero-spotlight-meta-line hero-spotlight-meta-line--bold">UI / UX Designer</p>
+        <div class="hero-spotlight-chip hero-spotlight-chip--blue">
+          <img class="hero-spotlight-chip-icon" src="images/role-icon.svg" alt="" aria-hidden="true" />
+          <div class="hero-spotlight-chip-text">
+            <p class="hero-spotlight-chip-line">My work spans</p>
+            <p class="hero-spotlight-chip-line hero-spotlight-chip-line--bold">UI / UX Design</p>
+          </div>
         </div>
-        <div class="hero-spotlight-meta-item">
-          <img class="hero-spotlight-meta-icon" src="images/location-icon.svg" alt="" aria-hidden="true" />
-          <p class="hero-spotlight-meta-line">I am located in</p>
-          <p class="hero-spotlight-meta-line hero-spotlight-meta-line--bold">SF Bay Area, CA</p>
+        <div class="hero-spotlight-chip hero-spotlight-chip--green">
+          <img class="hero-spotlight-chip-icon" src="images/availability-icon.svg" alt="" aria-hidden="true" />
+          <div class="hero-spotlight-chip-text">
+            <p class="hero-spotlight-chip-line">Currently looking for</p>
+            <p class="hero-spotlight-chip-line hero-spotlight-chip-line--bold">Full-Time Roles</p>
+          </div>
+        </div>
+        <div class="hero-spotlight-chip hero-spotlight-chip--red">
+          <img class="hero-spotlight-chip-icon" src="images/location-icon.svg" alt="" aria-hidden="true" />
+          <div class="hero-spotlight-chip-text">
+            <p class="hero-spotlight-chip-line">I am located in</p>
+            <p class="hero-spotlight-chip-line hero-spotlight-chip-line--bold">San Francisco</p>
+          </div>
         </div>
       </div>
 
       <div class="hero-spotlight-actions" id="hero-spotlight-actions">
-        <a href="#projects" class="hero-spotlight-btn hero-spotlight-btn--primary" id="hero-spotlight-projects-btn">My Projects</a>
-        <a href="#about" class="hero-spotlight-btn hero-spotlight-btn--secondary">About Me</a>
+        <a href="#projects" class="hero-spotlight-btn" id="hero-spotlight-projects-btn" data-section="projects">
+          View My Projects
+          <svg class="hero-spotlight-btn-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M5 12H19M19 12L13 6M19 12L13 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </a>
       </div>
+
     </div>
   </div>
 

@@ -418,8 +418,9 @@ section { position: relative; }
   gap: 0.4rem;
   padding: 0.55rem 1.15rem;
   border-radius: 999px;
-  font-size: 0.85rem;
-  font-weight: 600;
+  font-family: 'Baloo 2', var(--font-display);
+  font-size: 0.92rem;
+  font-weight: 500;
   letter-spacing: 0.02em;
   color: rgba(255, 255, 255, 0.72);
   /* Subtle chip even at rest — the active link stands out with the
@@ -647,7 +648,8 @@ section { position: relative; }
   z-index: 160;
   pointer-events: none;
   border-radius: 32px;
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.14);
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
   clip-path: inset(0 100% 0 0);
@@ -658,26 +660,29 @@ section { position: relative; }
   justify-content: flex-start;
   align-items: stretch;
   text-align: center;
-  padding: clamp(28px, 4vw, 56px);
+  padding-top: clamp(18px, 2.6vw, 36px);
+  padding-bottom: clamp(18px, 2.6vw, 36px);
+  padding-inline: clamp(28px, 4vw, 56px);
 }
 .hero-spotlight-line {
-  font-family: var(--font-display);
+  font-family: var(--font-body);
   font-weight: 500;
-  font-size: clamp(1.1rem, 1vw + 0.75rem, 1.6rem);
+  font-size: clamp(0.95rem, 0.85vw + 0.62rem, 1.35rem);
   line-height: 1.3;
-  color: var(--surface-50);
+  color: var(--surface-500);
   white-space: nowrap;
   opacity: 0;
   transform: translateY(14px);
   transition: opacity 1.2s var(--ease), transform 1.2s var(--ease);
 }
 .hero-spotlight-highlight {
-  font-family: var(--font-display);
-  font-weight: 600;
-  font-size: clamp(1.6rem, 1.8vw + 1rem, 2.6rem);
+  font-family: 'Balthazar', var(--font-display);
+  font-weight: 400;
+  font-size: clamp(1.75rem, 2vw + 1.05rem, 2.85rem);
   line-height: 1.2;
-  color: var(--saffron-600);
-  margin-top: 0.2rem;
+  letter-spacing: 0.05em;
+  color: var(--surface-50);
+  margin-top: 0.1rem;
   opacity: 0;
   transform: translateY(14px);
   transition: opacity 1.4s var(--ease) 0.5s, transform 1.4s var(--ease) 0.5s;
@@ -691,7 +696,7 @@ section { position: relative; }
   display: flex;
   align-items: flex-start;
   gap: 1.5rem;
-  margin-top: clamp(24px, 3.4vw, 48px);
+  margin-top: clamp(16px, 2.2vw, 30px);
   /* Width set in px from script.js, matched to the buttons row below
      (which is itself matched to the highlight line's rendered width)
      — combined with each item being flex: 1 1 0 (same split the
@@ -700,49 +705,133 @@ section { position: relative; }
      instead of just sharing a center point with them. */
   margin-inline: auto;
 }
-.hero-spotlight-meta-item {
+.hero-spotlight-chip {
+  position: relative;
   flex: 1 1 0;
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
-  gap: 0.6rem;
+  gap: clamp(8px, 1vw, 16px);
+  padding: clamp(9px, 1.3vw, 19px) clamp(10px, 1.4vw, 18px);
+  border-radius: clamp(10px, 1.1vw, 16px);
+  border: 1px solid var(--chip-border);
+  /* pointer-events re-enabled per-chip since .hero-spotlight-card
+     (the ancestor) is pointer-events:none — see the note on that
+     rule below. Needed for the :hover glow/brightness response. */
+  pointer-events: auto;
   opacity: 0;
   transform: translateY(14px);
-  transition: opacity 1s var(--ease) 0.75s, transform 1s var(--ease) 0.75s;
+  box-shadow: inset 0 0 24px rgba(0, 0, 0, 0.1);
+  transition: opacity 1s var(--ease) 0.75s, transform 1s var(--ease) 0.75s, background 0.3s var(--ease), border-color 0.3s var(--ease), filter 0.3s var(--ease);
 }
-.hero-spotlight-card.is-revealed .hero-spotlight-meta-item {
+.hero-spotlight-card.is-revealed .hero-spotlight-chip {
   opacity: 1;
   transform: none;
 }
-.hero-spotlight-meta-icon {
-  width: clamp(32px, 3vw, 46px);
-  height: clamp(32px, 3vw, 46px);
-  opacity: 0.85;
+/* The continuous glow pulse now lives only on the middle (green)
+   chip — see .hero-spotlight-chip--green below — since a CSS
+   animation always wins over a transition on the same property,
+   that chip's box-shadow is driven entirely by @keyframes instead
+   of the static declaration above. */
+@keyframes hero-chip-glow {
+  0%, 100% { box-shadow: inset 0 0 24px rgba(0, 0, 0, 0.1), 0 0 0 rgba(0, 0, 0, 0); }
+  50% { box-shadow: inset 0 0 24px rgba(0, 0, 0, 0.1), 0 0 14px var(--chip-glow); }
 }
-.hero-spotlight-meta-line {
+/* Chip fills reuse the same three accent groups as the rest of the
+   palette (mineral-blue / botanical-green / saffron), at their -900
+   shade mixed to 80% opacity over the photo — matches Figma node
+   171:171 exactly (rgba(27,47,64) / rgba(31,59,42) / rgba(196,144,0)
+   are the unmixed hex of those tokens). Stroke/glow color per chip
+   is a lighter, mid tone from the same accent group (kept distinct
+   from the -200 text color so they don't blend into it). */
+.hero-spotlight-chip--blue {
+  background: color-mix(in srgb, var(--mineral-blue-900) 80%, transparent);
+  --chip-border: color-mix(in srgb, var(--mineral-blue-300) 38%, transparent);
+  --chip-glow: color-mix(in srgb, var(--mineral-blue-300) 55%, transparent);
+}
+.hero-spotlight-chip--green {
+  background: color-mix(in srgb, var(--botanical-green-900) 80%, transparent);
+  /* Darker than the blue/gold chips' strokes on purpose — this is
+     the only chip that still pulses, so a darker, richer green
+     keeps the glow itself subtle instead of the brightest thing
+     in the card. */
+  --chip-border: color-mix(in srgb, var(--botanical-green-600) 55%, transparent);
+  --chip-glow: color-mix(in srgb, var(--botanical-green-700) 50%, transparent);
+  animation: hero-chip-glow 5s ease-in-out infinite;
+  overflow: hidden;
+}
+/* Shimmer sweep — scoped to only this chip. border-radius: inherit
+   keeps the gradient's background-clip inside the chip's own rounded
+   corners; z-index:1 on the icon/text below keeps them readable
+   above it. mix-blend-mode:screen means it only ever brightens. */
+.hero-spotlight-chip--green::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: inherit;
+  background: linear-gradient(115deg,
+    transparent 35%,
+    rgba(255, 255, 255, 0.06) 47%,
+    rgba(255, 255, 255, 0.1) 50%,
+    rgba(255, 255, 255, 0.06) 53%,
+    transparent 65%);
+  background-size: 220% 100%;
+  background-position: 130% 0;
+  mix-blend-mode: screen;
+  pointer-events: none;
+  animation: hero-card-shimmer 12s linear infinite;
+}
+@keyframes hero-card-shimmer {
+  0% { background-position: 130% 0; }
+  100% { background-position: -130% 0; }
+}
+/* Same color style as the buttons row below (oxide-red-900 @ 90%,
+   #E5BCB3 text/icon). */
+.hero-spotlight-chip--red {
+  background: color-mix(in srgb, var(--oxide-red-900) 90%, transparent);
+  --chip-border: color-mix(in srgb, var(--oxide-red-600) 42%, transparent);
+  --chip-glow: color-mix(in srgb, var(--oxide-red-600) 55%, transparent);
+}
+.hero-spotlight-chip--blue .hero-spotlight-chip-line { color: var(--mineral-blue-200); }
+.hero-spotlight-chip--green .hero-spotlight-chip-line { color: var(--botanical-green-200); }
+.hero-spotlight-chip--red .hero-spotlight-chip-line { color: var(--oxide-red-100); }
+.hero-spotlight-chip-icon {
+  position: relative;
+  z-index: 1;
+  width: clamp(26px, 2.4vw, 37px);
+  height: clamp(26px, 2.4vw, 37px);
+}
+.hero-spotlight-chip-text {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.02rem;
+}
+.hero-spotlight-chip-line {
   font-family: var(--font-body);
-  font-size: clamp(0.95rem, 0.75vw + 0.6rem, 1.15rem);
+  font-size: clamp(0.75rem, 0.55vw + 0.48rem, 0.92rem);
+  letter-spacing: 0.02em;
   line-height: 1.4;
-  color: var(--surface-300);
 }
-.hero-spotlight-meta-line--bold {
-  font-size: clamp(1.05rem, 0.85vw + 0.7rem, 1.3rem);
-  font-weight: 700;
-  color: var(--surface-50);
+.hero-spotlight-chip-line--bold {
+  font-family: 'Balthazar', var(--font-display);
+  font-weight: 400;
+  font-size: clamp(1.35rem, 1.5vw + 0.85rem, 1.8rem);
+  letter-spacing: 0.02em;
 }
 .hero-spotlight-actions {
   display: flex;
-  align-items: center;
-  gap: 1.5rem;
-  margin-top: clamp(28px, 3.6vw, 48px);
+  margin-top: clamp(18px, 2.4vw, 32px);
   /* Width is set in px from script.js, matched every reflow to
-     #hero-spotlight-highlight's own rendered width — so this row's
-     outer edges land exactly under the "I" of Intelligence and the
-     "e" of Culture instead of just sharing the same center axis. */
+     #hero-spotlight-highlight's own rendered width, same as the chip
+     row above — keeps both rows' outer edges aligned. */
   margin-inline: auto;
   /* The card itself is pointer-events:none (see .hero-spotlight-card
-     above) — these are the first real interactive elements inside it,
+     above) — this is the first real interactive element inside it,
      so hit-testing has to be explicitly turned back on here. */
   pointer-events: auto;
   opacity: 0;
@@ -753,41 +842,32 @@ section { position: relative; }
   opacity: 1;
   transform: none;
 }
+/* Same treatment as .nav-link — same pill, colors, and hover. */
 .hero-spotlight-btn {
   flex: 1 1 0;
-  text-align: center;
-  padding: 0.9rem 1.4rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.4rem;
   border-radius: 999px;
-  font-family: var(--font-body);
-  font-size: 0.85rem;
-  font-weight: 600;
+  font-family: 'Baloo 2', var(--font-display);
+  font-size: clamp(0.85rem, 0.5vw + 0.6rem, 0.98rem);
+  font-weight: 500;
   letter-spacing: 0.02em;
-  transition: background 0.3s var(--ease), color 0.3s var(--ease), border-color 0.3s var(--ease), transform 0.3s var(--ease);
+  color: rgba(255, 255, 255, 0.72);
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  transition: background 0.3s var(--ease), color 0.3s var(--ease), border-color 0.3s var(--ease);
 }
-/* Each CTA now pulls from a different color group in the palette
-   (oxide-red here, mineral-blue below) instead of both matching the
-   nav's saffron — part of spreading real color variety across the
-   card instead of leaning on one accent everywhere. -500 shades on a
-   dark photo background need light text for contrast, not ink. */
-.hero-spotlight-btn--primary {
-  background: var(--oxide-red-500);
-  border: 1px solid var(--oxide-red-500);
+.hero-spotlight-btn:hover {
   color: var(--surface-50);
+  background: rgba(255, 255, 255, 0.14);
 }
-.hero-spotlight-btn--primary:hover {
-  background: var(--oxide-red-600);
-  border-color: var(--oxide-red-600);
-  transform: translateY(-2px);
-}
-.hero-spotlight-btn--secondary {
-  background: var(--mineral-blue-500);
-  border: 1px solid var(--mineral-blue-500);
-  color: var(--surface-50);
-}
-.hero-spotlight-btn--secondary:hover {
-  background: var(--mineral-blue-600);
-  border-color: var(--mineral-blue-600);
-  transform: translateY(-2px);
+.hero-spotlight-btn-icon {
+  width: 19px;
+  height: 19px;
+  flex-shrink: 0;
 }
 
 /* ═══════════════════════════════════════════════════════════
