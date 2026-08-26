@@ -243,7 +243,16 @@ section { position: relative; }
    nav links — one shared band that's already there, just fading in,
    so docking doesn't create a visible "pop." */
 .hero-nav-bar {
-  position: absolute;
+  /* Fixed unconditionally, not toggled via .is-docked, same reasoning
+     as heroAvatar/heroMorphName in script.js: this is a direct <body>
+     child (see script.js), so `position: absolute` here means relative
+     to the document, not the viewport — while fading/sliding in (which
+     starts well before is-docked would normally be added), it would
+     render up near the top of the DOCUMENT, already scrolled out of
+     view above the viewport, then jump into the visible fixed spot
+     only once .is-docked finally landed — invisible the whole time it
+     was actually animating, then an abrupt full-strength appearance. */
+  position: fixed;
   top: 0; left: 0; right: 0;
   height: clamp(170px, 22vh, 280px);
   /* Above .projects (190) now that it's a direct body child (see
@@ -260,11 +269,11 @@ section { position: relative; }
     rgba(146, 180, 218, 0.09) 90%,
     rgba(146, 180, 218, 0) 100%);
   opacity: 0;
+  transform: translateX(-100%);
   pointer-events: none;
-  will-change: opacity;
-  transition: opacity 0.15s linear;
+  will-change: opacity, transform;
+  transition: opacity 0.15s linear, transform 0.15s linear;
 }
-.hero-nav-bar.is-docked { position: fixed; }
 /* The only blurred part — a strip confined to the nav row itself,
    masked to fade its own blur out smoothly instead of stopping at a
    hard edge (that hard edge was a real bug in an earlier version). */
@@ -342,8 +351,8 @@ section { position: relative; }
   top: var(--dock-center-y);
   left: var(--dock-side);
   transform: translateY(-50%);
-  width: var(--avatar-dock);
-  height: var(--avatar-dock);
+  width: 46px;
+  height: 46px;
   border-radius: 50%;
   border: 1px solid rgba(255, 255, 255, 0.55);
   background: rgba(21, 21, 21, 0.4);
@@ -367,15 +376,17 @@ section { position: relative; }
   border-color: rgba(255, 255, 255, 0.85);
 }
 .projects-back-chevron {
-  width: 14px;
-  height: 14px;
-  border-right: 3px solid var(--surface-50);
-  border-bottom: 3px solid var(--surface-50);
-  transform: rotate(135deg) translate(-2px, -2px);
+  width: 10px;
+  height: 10px;
+  border-right: 2px solid var(--surface-50);
+  border-bottom: 2px solid var(--surface-50);
+  transform: rotate(135deg) translate(-1px, -1px);
 }
 
 .hero-nav {
-  position: absolute;
+  /* Fixed unconditionally — see the comment on .hero-nav-bar above,
+     same reasoning applies here. */
+  position: fixed;
   top: var(--dock-center-y);
   right: var(--dock-side);
   transform: translateY(-50%);
@@ -384,7 +395,6 @@ section { position: relative; }
   will-change: opacity;
   transition: opacity 0.15s linear;
 }
-.hero-nav.is-docked { position: fixed; }
 .nav-toggle {
   display: none;
   flex-direction: column;
@@ -648,7 +658,7 @@ section { position: relative; }
   z-index: 160;
   pointer-events: none;
   border-radius: 32px;
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(250, 244, 236, 0);
   border: 1px solid rgba(255, 255, 255, 0.14);
   backdrop-filter: blur(18px);
   -webkit-backdrop-filter: blur(18px);
@@ -667,8 +677,8 @@ section { position: relative; }
 .hero-spotlight-line {
   font-family: var(--font-body);
   font-weight: 500;
-  font-size: clamp(0.95rem, 0.85vw + 0.62rem, 1.35rem);
-  line-height: 1.3;
+  font-size: clamp(0.85rem, 0.75vw + 0.55rem, 1.2rem);
+  line-height: 1.15;
   color: var(--surface-500);
   white-space: nowrap;
   opacity: 0;
@@ -679,10 +689,10 @@ section { position: relative; }
   font-family: 'Balthazar', var(--font-display);
   font-weight: 400;
   font-size: clamp(1.75rem, 2vw + 1.05rem, 2.85rem);
-  line-height: 1.2;
+  line-height: 1.05;
   letter-spacing: 0.05em;
   color: var(--surface-50);
-  margin-top: 0.1rem;
+  margin-top: 10px;
   opacity: 0;
   transform: translateY(14px);
   transition: opacity 1.4s var(--ease) 0.5s, transform 1.4s var(--ease) 0.5s;
@@ -696,7 +706,7 @@ section { position: relative; }
   display: flex;
   align-items: flex-start;
   gap: 1.5rem;
-  margin-top: clamp(16px, 2.2vw, 30px);
+  margin-top: clamp(20px, 2.6vw, 34px);
   /* Width set in px from script.js, matched to the buttons row below
      (which is itself matched to the highlight line's rendered width)
      — combined with each item being flex: 1 1 0 (same split the
@@ -728,6 +738,16 @@ section { position: relative; }
 .hero-spotlight-card.is-revealed .hero-spotlight-chip {
   opacity: 1;
   transform: none;
+  /* Idle pulse, one chip at a time — see hero-chip-pulse below.
+     Delay = the entrance transition's own 0.75s delay + 1s duration
+     (1.75s) so the pulse's first keyframe (an equivalent resting
+     transform) doesn't take over `transform` from the transition mid-
+     slide — animations beat transitions on the same property the
+     instant they start, so starting this before the slide finishes
+     would cancel it outright. Each chip's own extra stagger (added on
+     top of that 1.75s base) is set where its variant class overrides
+     animation-delay below. */
+  animation: hero-chip-pulse 12s ease-in-out infinite 1.75s;
 }
 /* The continuous glow pulse now lives only on the middle (green)
    chip — see .hero-spotlight-chip--green below — since a CSS
@@ -737,6 +757,18 @@ section { position: relative; }
 @keyframes hero-chip-glow {
   0%, 100% { box-shadow: inset 0 0 24px rgba(0, 0, 0, 0.1), 0 0 0 rgba(0, 0, 0, 0); }
   50% { box-shadow: inset 0 0 24px rgba(0, 0, 0, 0.1), 0 0 14px var(--chip-glow); }
+}
+/* Same rise-hold-fall shape as the EZ Brow case study's screen-raise
+   pulse (ez-porfolio-piece/style.css) on its mockup screens — quick
+   rise, a brief hold at the peak, quick fall, then a long rest — rather
+   than snapping straight back down from a single-instant peak. Scale
+   only, no rotate, so it never touches layout — no reflow, so the card
+   height, text, and button stay exactly where they are. The three
+   chips' animation-delay values below are staggered by a third of the
+   12s duration each, so only one is ever mid-pulse at a time. */
+@keyframes hero-chip-pulse {
+  0%, 26%, 100% { transform: scale(1); }
+  6%, 20% { transform: scale(1.05); }
 }
 /* Chip fills reuse the same three accent groups as the rest of the
    palette (mineral-blue / botanical-green / saffron), at their -900
@@ -760,6 +792,20 @@ section { position: relative; }
   --chip-glow: color-mix(in srgb, var(--botanical-green-700) 50%, transparent);
   animation: hero-chip-glow 5s ease-in-out infinite;
   overflow: hidden;
+}
+/* Combines with the scale pulse once revealed (green is the middle
+   chip in the stagger, so its extra offset sits between blue's 0s and
+   red's 2 * 4s below) — has to be re-declared together with
+   the glow animation here, not just given its own animation-delay,
+   since the `animation` shorthand from the general is-revealed rule
+   above would otherwise replace green's glow outright rather than
+   add to it (same specificity, but this selector comes later). */
+.hero-spotlight-card.is-revealed .hero-spotlight-chip--green {
+  animation: hero-chip-glow 5s ease-in-out infinite,
+              hero-chip-pulse 12s ease-in-out infinite calc(1.75s + 4s);
+}
+.hero-spotlight-card.is-revealed .hero-spotlight-chip--red {
+  animation-delay: calc(1.75s + 8s);
 }
 /* Shimmer sweep — scoped to only this chip. border-radius: inherit
    keeps the gradient's background-clip inside the chip's own rounded
@@ -785,7 +831,7 @@ section { position: relative; }
 }
 @keyframes hero-card-shimmer {
   0% { background-position: 130% 0; }
-  100% { background-position: -130% 0; }
+  100% { background-position: -90% 0; }
 }
 /* Same color style as the buttons row below (oxide-red-900 @ 90%,
    #E5BCB3 text/icon). */
@@ -825,7 +871,7 @@ section { position: relative; }
 }
 .hero-spotlight-actions {
   display: flex;
-  margin-top: clamp(18px, 2.4vw, 32px);
+  margin-top: clamp(28px, 3.4vw, 44px);
   /* Width is set in px from script.js, matched every reflow to
      #hero-spotlight-highlight's own rendered width, same as the chip
      row above — keeps both rows' outer edges aligned. */
@@ -842,7 +888,9 @@ section { position: relative; }
   opacity: 1;
   transform: none;
 }
-/* Same treatment as .nav-link — same pill, colors, and hover. */
+/* Corner radius and fill opacity matched to .hero-spotlight-chip
+   above (clamp(10px,1.1vw,16px) radius, 80% opacity fill) instead
+   of the pill/solid treatment .nav-link uses. */
 .hero-spotlight-btn {
   flex: 1 1 0;
   display: flex;
@@ -850,19 +898,20 @@ section { position: relative; }
   justify-content: center;
   gap: 0.5rem;
   padding: 0.75rem 1.4rem;
-  border-radius: 999px;
+  border-radius: clamp(10px, 1.1vw, 16px);
   font-family: 'Baloo 2', var(--font-display);
-  font-size: clamp(0.85rem, 0.5vw + 0.6rem, 0.98rem);
+  font-size: clamp(1rem, 0.65vw + 0.7rem, 1.15rem);
   font-weight: 500;
   letter-spacing: 0.02em;
-  color: rgba(255, 255, 255, 0.72);
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: var(--ink-900);
+  background: color-mix(in srgb, var(--saffron-700) 80%, transparent);
+  border: 1px solid color-mix(in srgb, var(--saffron-700) 80%, transparent);
   transition: background 0.3s var(--ease), color 0.3s var(--ease), border-color 0.3s var(--ease);
 }
 .hero-spotlight-btn:hover {
-  color: var(--surface-50);
-  background: rgba(255, 255, 255, 0.14);
+  color: var(--ink-900);
+  background: color-mix(in srgb, var(--saffron-600) 80%, transparent);
+  border-color: color-mix(in srgb, var(--saffron-600) 80%, transparent);
 }
 .hero-spotlight-btn-icon {
   width: 19px;
@@ -1055,10 +1104,10 @@ section { position: relative; }
   background-repeat: no-repeat;
   display: flex;
   flex-direction: column;
-  justify-content: flex-start;
+  justify-content: center;
   padding: clamp(1.25rem, 4vh, 2.5rem) clamp(1.25rem, 6vw, 5rem);
   transform: translateX(100%);
-  transition: transform 0.7s var(--ease);
+  transition: transform 1.1s var(--ease);
 }
 .projects.is-open {
   transform: translateX(0);
@@ -1072,10 +1121,12 @@ section { position: relative; }
 .project-grid {
   width: 100%;
   max-width: 1180px;
-  /* Top margin clears the absolutely-positioned .projects-back-row
-     sitting above it (now that .projects is top-aligned rather than
-     vertically centering this grid). */
-  margin: clamp(88px, 14vh, 128px) auto 0;
+  /* .projects is a centered flex column (justify-content: center), so
+     this just needs horizontal centering — the back button lives
+     outside .projects entirely (fixed to the real docked nav's
+     top-left corner), so there's nothing here for a top margin to
+     clear. */
+  margin: 0 auto;
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: clamp(1rem, 2vw + 1vh, 2rem);
@@ -1095,6 +1146,11 @@ section { position: relative; }
   border-color: color-mix(in srgb, var(--accent) 55%, transparent);
   background: rgba(255, 255, 255, 0.06);
 }
+/* PP's card stroke uses the logo's own teal (#189293), not the site's
+   --mineral-blue token that --accent-blue normally resolves to —
+   scoped here rather than changed globally, since --accent-blue is a
+   shared token used elsewhere too. */
+.project-card.accent-blue { --accent: #189293; }
 .project-thumb {
   /* Height is capped in vh, not derived from the column's own width
      (a plain aspect-ratio would), so the thumb can't grow past what
@@ -1179,14 +1235,13 @@ section { position: relative; }
 }
 .ez-thumb-amp { color: var(--oxide-red-700); }
 /* Solid brand fills on the body only — the thumb above stays on its
-   own light patch (see .project-thumb--ez/--pp) since #8D2318 is the
-   EZ logo's own red path color: filling the thumb the same solid red
-   would make that half of the mark disappear into the background.
-   Teal is the PP logo's own icon color (#189293 in images/logo-pp.svg),
-   not this site's --mineral-blue token, since the ask was to match
-   the logo exactly. */
-.project-card.accent-red .project-body { background: #8d2318; }
-.project-card.accent-blue .project-body { background: #189293; }
+   own light patch (see .project-thumb--ez/--pp), so filling it the
+   same solid color wouldn't make either logo disappear into the
+   background. #8D2318 is the EZ logo's own red path color, #189293 is
+   the PP logo's own icon color (not this site's --mineral-blue token)
+   — both at 90% opacity here rather than solid. */
+.project-card.accent-red .project-body { background: rgba(141, 35, 24, 0.9); }
+.project-card.accent-blue .project-body { background: rgba(24, 146, 147, 0.9); }
 /* Shared 60/40 grid on both cards — text column / image column — even
    though only PP has its image wired up so far (EZ's second column
    just sits empty until that asset lands). Vertical padding stays
@@ -1204,7 +1259,7 @@ section { position: relative; }
   /* A little extra top padding specifically, on top of the shared
      clamp — the role line needs real breathing room now that it's
      top-anchored instead of vertically centered. */
-  padding: clamp(1.9rem, 2.6vw + 2.2vh, 2.9rem) clamp(1.25rem, 2vw + 1.4vh, 2rem) clamp(1.5rem, 2vw + 1.8vh, 2.4rem);
+  padding: clamp(1.3rem, 1.8vw + 1.5vh, 2rem) clamp(1.25rem, 2vw + 1.4vh, 2rem) clamp(1rem, 1.4vw + 1.2vh, 1.6rem);
   display: grid;
   grid-template-columns: 50% 50%;
   /* start, not center — description text wraps to a different number

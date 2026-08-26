@@ -205,8 +205,9 @@ document.addEventListener('DOMContentLoaded', () => {
      position happens to fall outside a viewport-centered box. */
   const CARD_TOP_FRACTION = 0.48;
   /* Extra flat pixel lift on top of the proportional fraction above —
-     a simple "nudge it up a bit more" knob independent of card height. */
-  const CARD_EXTRA_LIFT = 10;
+     a simple "nudge it up/down a bit" knob independent of card height.
+     Negative values push the card down instead of up. */
+  const CARD_EXTRA_LIFT = -5;
 
   let lightScale = 1;
   let lightXPx = 0;
@@ -502,20 +503,41 @@ document.addEventListener('DOMContentLoaded', () => {
      getting called — via onScroll() — well before that section runs. */
   let projectsOpen = false;
 
-  /* forceMorphP: used only by openProjects (see PROJECTS OVERLAY below)
-     to snap straight to the fully-docked visual state — e.g. when
-     "My Projects" is clicked from the hero itself, before any real
-     scrolling has happened — without touching actual scrollY or the
-     background pan/stupa-light (those stay tied to the real, unchanged
-     scroll position, same as everything else this overlay doesn't
-     actually navigate). Omitted (undefined) on every normal call, which
-     keeps morphP computed from real scroll exactly as before. */
+  /* forceMorphP: overrides morphP with an explicit value instead of
+     deriving it from real scrollY. Two callers:
+       - openProjects (see PROJECTS OVERLAY below) snaps straight to
+         the fully-docked visual state — e.g. when "My Projects" is
+         clicked from the hero itself, before any real scrolling has
+         happened — without touching actual scrollY or the background
+         pan/stupa-light (those stay tied to the real, unchanged scroll
+         position, same as everything else this overlay doesn't
+         actually navigate).
+       - the down-button's arrange-then-scroll sequence (see
+         animateArrangeThenScroll below, via activeForcedMorphP) drives
+         morphP by hand for its whole run, since its first phase plays
+         with scrollY not moving at all.
+     Omitted (undefined) on every other call, which keeps morphP
+     computed from real scroll exactly as before. */
+  /* Pure — no side effects — so the Projects overlay's open/close dock
+     animation (see animateProjectsDock below) can read "what morphP
+     would be right now" as an animation start/end point without
+     actually applying it (calling updateHero() itself would apply real
+     scroll's value immediately, defeating the point of animating INTO
+     that value from wherever the dock currently visually is). */
+  function computeRealMorphP() {
+    const pinHeight = heroPin.offsetHeight;
+    const vh = window.innerHeight;
+    const raw = (window.scrollY - heroPin.offsetTop) / (pinHeight - vh);
+    const p = clamp01(raw);
+    return clamp01((p - DOCK_START) / (DOCK_AT - DOCK_START));
+  }
+
   function updateHero(forceMorphP) {
     const pinHeight = heroPin.offsetHeight;
     const vh = window.innerHeight;
     const raw = (window.scrollY - heroPin.offsetTop) / (pinHeight - vh);
     const p = clamp01(raw);
-    const morphP = forceMorphP !== undefined ? forceMorphP : clamp01((p - DOCK_START) / (DOCK_AT - DOCK_START));
+    const morphP = forceMorphP !== undefined ? forceMorphP : computeRealMorphP();
     const isDocked = heroMorph.classList.contains('is-docked');
 
     if (morphP >= 1 && !isDocked) {
@@ -583,16 +605,25 @@ document.addEventListener('DOMContentLoaded', () => {
     heroMorphName.style.transform =
       `translate(${nameCx - (nameRestW * nameScale) / 2}px, ${nameCy - (nameRestH * nameScale) / 2}px) scale(${nameScale})`;
 
-    /* The glass bar + mobile toggle fade in across the same travelP
-       (avatar/name's actual migration to the corner) instead of an
-       independent morphP window — so the nav only starts appearing
-       once the lockup is actually underway toward the dock spot, and
-       finishes exactly as it arrives, instead of running on its own
-       disconnected schedule. Each nav-link chip gets its own slice of
-       that same travelP span and slides in from the left individually
-       — Home settles into place, then About Me, then Projects. */
+    /* The glass bar + mobile toggle fade AND slide in across the same
+       travelP (avatar/name's actual migration to the corner) instead
+       of an independent morphP window — so the nav only starts
+       appearing once the lockup is actually underway toward the dock
+       spot, and finishes exactly as it arrives, instead of running on
+       its own disconnected schedule. The bar itself emerges from the
+       left edge of the screen (translateX from -100% to 0) rather than
+       just fading in place — a bare opacity fade made it easy to miss
+       entirely, especially since `.hero-nav-bar` also switches from
+       position: absolute to fixed right as travelP reaches 1 (see
+       is-docked below), and a plain fade gave that switch nothing to
+       visually mask if the two coordinate systems didn't line up
+       exactly. A real slide-in reads clearly regardless. Each nav-link
+       chip gets its own slice of that same travelP span and slides in
+       from the left individually — Home settles into place, then
+       About Me, then Projects. */
     heroNav.style.opacity = '1';
     heroNavBar.style.opacity = String(travelP);
+    heroNavBar.style.transform = `translateX(${(travelP - 1) * 100}%)`;
     if (navToggle) navToggle.style.opacity = String(travelP);
 
     /* Each chip starts offset to the RIGHT of its own resting spot, by
@@ -600,8 +631,9 @@ document.addEventListener('DOMContentLoaded', () => {
        sequence (Home, then About Me, then Projects), each one starts
        close to where its next sibling is still sitting, so early on
        they read as a stack piled up near the right edge, peeling off
-       leftward into place one at a time rather than each traveling in
-       independently from far away. */
+       leftward into place one at a time — i.e. emerging from the right
+       side of the screen — rather than each traveling in independently
+       from far away. */
     const NAV_LINK_SLIDE_PX = 140;
     const perLinkSpan = 1 / navLinkEls.length;
     navLinkEls.forEach((link, i) => {
@@ -658,7 +690,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (ticking) return;
     ticking = true;
     window.requestAnimationFrame(() => {
-      updateHero();
+      updateHero(activeForcedMorphP);
       updateTravel();
       updateProgressBar();
       ticking = false;
@@ -788,6 +820,14 @@ document.addEventListener('DOMContentLoaded', () => {
      every frame — piggybacking on this loop instead of a second
      scroll listener, so there's nothing else to conflict with. */
   let scrollAnimating = false;
+  /* Set only while the down-button's arrange-then-scroll sequence
+     below is running, so onScroll's own updateHero() call (fired by
+     the scrollTo calls inside that sequence) reads the same forced
+     value instead of racing it with the real-scroll formula. Always
+     cleared back to undefined by the time the sequence ends, at which
+     point real scrollY already matches what the forced value implied,
+     so there's no jump on handoff. */
+  let activeForcedMorphP;
   function animateScrollTo(endY, onProgress, duration = 2800) {
     if (scrollAnimating) return;
     scrollAnimating = true;
@@ -838,10 +878,101 @@ document.addEventListener('DOMContentLoaded', () => {
     requestAnimationFrame(step);
   }
 
-  heroScrollBtn.addEventListener('click', () => {
+  /* Down-button sequence — ONE continuous scroll, not two separate
+     phases handed off to each other. Earlier versions tried gluing a
+     slow "arrange" segment to a faster "scroll" segment, each with its
+     own hand-picked easing; no matter how those two curves were
+     chosen, their velocities never actually matched at the handoff, so
+     there was always a kink where they met — sometimes a dead stall
+     (both sides slow), sometimes a jolt (one slow, one fast). A single
+     curve can't have that seam, because there's only one velocity
+     function for the whole trip, guaranteed continuous everywhere.
+     Morph, the stupa-light/beam/card reveal, and scroll all run on
+     DIFFERENT curves of the same t — not sequential phases (nothing is
+     ever handed off mid-flight, so there's still no seam to speak of),
+     just independent, all-smooth functions evaluated every frame:
+       steadyEased = smootherstep(t)               — natural, even pace
+       scrollEased = smootherstep(t ^ SCROLL_BIAS)  — held back longer
+     scrollEased alone drives scrollY, so the page visibly waits a bit
+     before it really gets moving, exactly as asked. steadyEased drives
+     the reveal directly (0 to 1 over the full duration — an earlier
+     version fed it scrollEased instead, whose own steep late ramp
+     compressed the whole reveal into a rushed burst).
+     activeForcedMorphP = clamp01(steadyEased / MORPH_DOCK_AT), not
+     steadyEased directly — two bugs happened in sequence learning why
+     it needs the rescale:
+       1) An earlier version rescaled by the ORIGINAL real-scroll
+          DOCK_AT (0.6), tuned back when this whole thing rode a single
+          scroll-driven curve. Combined with smootherstep's own steep
+          midsection, that squeezed the nav-link stagger (which only
+          runs across morphP's ARRANGE_PHASE_END-to-1 stretch) into
+          under half a second — barely enough to read as animating.
+       2) Removing the rescale entirely (activeForcedMorphP =
+          steadyEased) fixed that, but introduced a worse bug: morphP
+          then only reaches 1 — the threshold `.is-docked` (which
+          switches the nav from `position: absolute` to `position:
+          fixed`, see updateHero() below) waits for — at t = 1, the
+          very last instant of the whole animation. For nearly the
+          entire trip the nav sat un-fixed, scrolling away with the
+          rest of the hero, then snapped fixed and faded in abruptly on
+          the final frame.
+     MORPH_DOCK_AT ≈ 0.94 splits the difference: docking (and the
+     nav's switch to position: fixed) now completes around 80% through
+     the animation — comfortably before the very end, so there's no
+     last-frame snap — while the ARRANGE_PHASE_END-to-1 stretch feeding
+     the nav-link stagger still spans roughly a third of the total
+     duration (~900ms), long enough to read as a real slide-in. */
+  const SCROLL_BIAS = 1.6;
+  const MORPH_DOCK_AT = 0.94;
+  const DOWN_SCROLL_DURATION = 2700;
+  function smootherstep(x) {
+    return x * x * x * (x * (x * 6 - 15) + 10);
+  }
+  function animateArrangeThenScroll() {
+    if (scrollAnimating) return;
     const pinScrollable = heroPin.offsetHeight - window.innerHeight;
-    animateScrollTo(heroPin.offsetTop + pinScrollable, renderStupaReveal);
-  });
+    const startY = window.scrollY;
+    const endY = heroPin.offsetTop + pinScrollable;
+
+    function settle() {
+      activeForcedMorphP = undefined;
+      updateHero();
+      heroScrollBtn.disabled = false;
+      scrollAnimating = false;
+    }
+
+    if (prefersReducedMotion) {
+      window.scrollTo({ top: endY, left: 0, behavior: 'auto' });
+      renderStupaReveal(1);
+      settle();
+      return;
+    }
+
+    scrollAnimating = true;
+    heroScrollBtn.disabled = true;
+    const prevScrollBehavior = document.documentElement.style.scrollBehavior;
+    document.documentElement.style.scrollBehavior = 'auto';
+    const startTime = performance.now();
+
+    function step(now) {
+      const t = clamp01((now - startTime) / DOWN_SCROLL_DURATION);
+      const steadyEased = smootherstep(t);
+      const scrollEased = smootherstep(Math.pow(t, SCROLL_BIAS));
+      window.scrollTo({ top: startY + (endY - startY) * scrollEased, left: 0, behavior: 'auto' });
+      activeForcedMorphP = clamp01(steadyEased / MORPH_DOCK_AT);
+      updateHero(activeForcedMorphP);
+      renderStupaReveal(steadyEased);
+      if (t < 1) {
+        requestAnimationFrame(step);
+      } else {
+        document.documentElement.style.scrollBehavior = prevScrollBehavior;
+        settle();
+      }
+    }
+    requestAnimationFrame(step);
+  }
+
+  heroScrollBtn.addEventListener('click', animateArrangeThenScroll);
 
   /* The docked avatar/name lockup doubles as a "back to top" toggle —
      same animated scroll as the button above, just in reverse, instead
@@ -892,6 +1023,35 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelector('.nav-link[data-section="about"]'),
   ];
 
+  /* Animates the avatar/name dock smoothly into (or back out of) the
+     fully-docked state instead of an instant, one-frame updateHero(1)/
+     updateHero() snap — that snap used to happen at the exact same
+     moment the .projects panel itself starts its own (now 1.1s) slide,
+     so on top of an already-fast slide, the nav visibly jumping to its
+     final state in a single frame made the whole transition read as
+     abrupt no matter how the panel's own transition was tuned.
+     fromMorphP defaults to computeRealMorphP() (no side effects, unlike
+     calling updateHero() to find out, which would apply and jump to
+     that value immediately) — right for opening, where the dock really
+     is wherever real scroll currently puts it. Closing passes 1
+     explicitly instead, since the dock is visually AT 1 the whole time
+     the panel's open (forced there by the open animation), regardless
+     of real scroll position underneath — computeRealMorphP() at that
+     point would just describe where scroll already was, which is very
+     often NOT 1, and starting "from" that would skip most of the
+     animation instead of unwinding it. */
+  function animateProjectsDock(targetMorphP, fromMorphP = computeRealMorphP()) {
+    const DOCK_TRANSITION_DURATION = 450;
+    const startTime = performance.now();
+    function step(now) {
+      const t = clamp01((now - startTime) / DOCK_TRANSITION_DURATION);
+      const eased = smootherstep(t);
+      updateHero(fromMorphP + (targetMorphP - fromMorphP) * eased);
+      if (t < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+
   function openProjects(e) {
     if (e) e.preventDefault();
     projectsSection.classList.add('is-open');
@@ -899,7 +1059,7 @@ document.addEventListener('DOMContentLoaded', () => {
     navLinkEls.forEach((link) => link.classList.toggle('active', link.dataset.section === 'projects'));
     projectsOpen = true;
     if (projectsNavBackBtn) projectsNavBackBtn.classList.add('is-visible');
-    updateHero(1);
+    animateProjectsDock(1);
   }
   function closeProjects() {
     projectsSection.classList.remove('is-open');
@@ -911,7 +1071,7 @@ document.addEventListener('DOMContentLoaded', () => {
     navLinkEls.forEach((link) => link.classList.toggle('active', link.dataset.section === 'hero'));
     projectsOpen = false;
     if (projectsNavBackBtn) projectsNavBackBtn.classList.remove('is-visible');
-    updateHero();
+    animateProjectsDock(computeRealMorphP(), 1);
   }
 
   projectsOpenTriggers.forEach((el) => el && el.addEventListener('click', openProjects));
