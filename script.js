@@ -76,8 +76,18 @@ document.addEventListener('DOMContentLoaded', () => {
   const heroAvatar = heroMorph.querySelector('.hero-avatar');
   const heroMorphName = heroMorph.querySelector('.hero-morph-name');
   const heroScrollBtn = document.getElementById('hero-scroll-btn');
+  const projectsNavBackBtn = document.getElementById('projects-nav-back-btn');
   const heroNav = document.getElementById('hero-nav');
   const heroNavBar = document.getElementById('hero-nav-bar');
+  /* Same stacking-context escape as the avatar/name (see the relocation
+     at the end of remeasureHeroMorph for the full explanation) — .hero's
+     position:sticky traps these inside its own stacking context
+     otherwise, regardless of their own z-index. Their positioning is
+     already fully CSS-var/viewport-driven (--dock-top/--dock-side, or
+     `right:`/`top:` before docking, when they're invisible anyway), so
+     moving them has no positioning dependency on their old parent. */
+  document.body.appendChild(heroNav);
+  document.body.appendChild(heroNavBar);
   const navToggle = document.getElementById('nav-toggle');
   const navLinkEls = document.querySelectorAll('.nav-link');
   const stupaLight = document.getElementById('stupa-light');
@@ -406,6 +416,14 @@ document.addEventListener('DOMContentLoaded', () => {
   let angleDelta = 0;
 
   function remeasureHeroMorph() {
+    /* Move back under .hero-morph first (a no-op on the very first
+       call; on every later one — resize — they were relocated to
+       <body> at the end of the previous call, see below) so the
+       "unstyle, measure" step below reads their real flex-column rest
+       layout, not wherever they'd land as a stray body child. */
+    heroMorph.appendChild(heroAvatar);
+    heroMorph.appendChild(heroMorphName);
+
     /* Measure the natural (CSS flex-column) rest layout by clearing
        any inline overrides first — same "unstyle, measure, restyle"
        trick the old single-transform version used. */
@@ -465,14 +483,42 @@ document.addEventListener('DOMContentLoaded', () => {
     heroMorphName.style.position = 'fixed';
     heroMorphName.style.left = '0';
     heroMorphName.style.top = '0';
+
+    /* Relocate to <body> now that they're position:fixed and their
+       transform is purely viewport-px-based (no longer dependent on
+       .hero-morph's own layout). This is the actual fix for a real
+       bug: .hero has position:sticky, which — regardless of the
+       avatar/name's own fixed positioning and high z-index — makes
+       CSS treat .hero's entire subtree as ONE stacking-context unit
+       when compared against outside siblings. Once .projects (a
+       later sibling with z-index:190) existed, that whole unit lost
+       to it, hiding the avatar/name/nav behind the panel even though
+       their own z-index (200-220) is higher — z-index only compares
+       within the same stacking context. Moving them to be direct
+       body children escapes .hero's context entirely. */
+    document.body.appendChild(heroAvatar);
+    document.body.appendChild(heroMorphName);
   }
 
-  function updateHero() {
+  /* Declared up here (not down by PROJECTS OVERLAY where it's actually
+     set) because updateHero below reads it, and updateHero starts
+     getting called — via onScroll() — well before that section runs. */
+  let projectsOpen = false;
+
+  /* forceMorphP: used only by openProjects (see PROJECTS OVERLAY below)
+     to snap straight to the fully-docked visual state — e.g. when
+     "My Projects" is clicked from the hero itself, before any real
+     scrolling has happened — without touching actual scrollY or the
+     background pan/stupa-light (those stay tied to the real, unchanged
+     scroll position, same as everything else this overlay doesn't
+     actually navigate). Omitted (undefined) on every normal call, which
+     keeps morphP computed from real scroll exactly as before. */
+  function updateHero(forceMorphP) {
     const pinHeight = heroPin.offsetHeight;
     const vh = window.innerHeight;
     const raw = (window.scrollY - heroPin.offsetTop) / (pinHeight - vh);
     const p = clamp01(raw);
-    const morphP = clamp01((p - DOCK_START) / (DOCK_AT - DOCK_START));
+    const morphP = forceMorphP !== undefined ? forceMorphP : clamp01((p - DOCK_START) / (DOCK_AT - DOCK_START));
     const isDocked = heroMorph.classList.contains('is-docked');
 
     if (morphP >= 1 && !isDocked) {
@@ -502,7 +548,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const avatarScale = 1 - (1 - TARGET_SCALE) * sizeP;
     const nameScale = 1 - (1 - DOCK_NAME_FONT_PX / nameRestFontPx) * sizeP;
 
-    const hubX = restHubX + (dockHubX - restHubX) * travelP;
+    /* Reserves room for .projects-nav-back-btn (same width as the
+       docked avatar, plus the same gap the avatar/name themselves
+       use) at the left edge — only while the Projects panel is open,
+       and scaled by travelP so it's already at full strength by the
+       time the lockup actually reaches the corner, not a snap. */
+    const navBackShift = projectsOpen ? (AVATAR_DOCK + DOCK_GAP) * travelP : 0;
+    const hubX = restHubX + (dockHubX - restHubX) * travelP + navBackShift;
     const hubY = restHubY + (dockHubY - restHubY) * travelP;
     const angle = restAngle + angleDelta * rotateP;
 
@@ -676,7 +728,15 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  const sections = document.querySelectorAll('main section[id]');
+  /* #projects excluded — it's a position:fixed overlay (see PROJECTS
+     OVERLAY below), not a normal in-flow scroll section, and its
+     active-state is already handled directly by openProjects/
+     closeProjects. Leaving it in here let it occasionally register a
+     false isIntersecting (fixed + translateX(100%) sitting exactly at
+     the viewport's right edge is prone to sub-pixel rounding overlap)
+     and steal the active state from Home with no scroll ever
+     happening to correct it back. */
+  const sections = document.querySelectorAll('main section[id]:not(#projects)');
   const sectionObserver = new IntersectionObserver((entries) => {
     entries.forEach((entry) => {
       if (entry.isIntersecting) {
@@ -802,17 +862,26 @@ document.addEventListener('DOMContentLoaded', () => {
      avatar/name/nav sits at a higher z-index than the panel, so it
      stays exactly where it is, fully clickable, the whole time this
      is open. It's the way in (Projects link / the hero's My Projects
-     button) AND, along with the panel's own top-left back arrow, the
-     way back out (Home link / the docked avatar also close it) — none
-     of these actually move the underlying page, so closing just
-     reveals whatever state it was already in before opening. */
+     button) AND, along with the nav's own back arrow
+     (.projects-nav-back-btn), the way back out (Home link / the
+     docked avatar also close it) — none of these actually move the
+     underlying page, so closing just reveals whatever state it was
+     already in before opening.
+
+     Opening also forces the avatar/name/nav into their fully-docked
+     state (see the forceMorphP param on updateHero above) even if
+     you triggered this from the hero itself before ever scrolling —
+     otherwise there'd be no docked nav bar for the back arrow to live
+     in. Closing hands back off to the real, unchanged scroll position
+     (calling updateHero() with no override), so it un-docks again if
+     you genuinely hadn't scrolled. */
   const projectsSection = document.getElementById('projects');
   const projectsOpenTriggers = [
     document.getElementById('hero-spotlight-projects-btn'),
     document.querySelector('.nav-link[data-section="projects"]'),
   ];
   const projectsCloseTriggers = [
-    document.getElementById('projects-back-btn'),
+    projectsNavBackBtn,
     document.querySelector('.nav-link[data-section="hero"]'),
     document.querySelector('.nav-link[data-section="about"]'),
     document.querySelector('.hero-spotlight-btn--secondary'),
@@ -823,10 +892,21 @@ document.addEventListener('DOMContentLoaded', () => {
     projectsSection.classList.add('is-open');
     projectsSection.setAttribute('aria-hidden', 'false');
     navLinkEls.forEach((link) => link.classList.toggle('active', link.dataset.section === 'projects'));
+    projectsOpen = true;
+    if (projectsNavBackBtn) projectsNavBackBtn.classList.add('is-visible');
+    updateHero(1);
   }
   function closeProjects() {
     projectsSection.classList.remove('is-open');
     projectsSection.setAttribute('aria-hidden', 'true');
+    /* Closing always lands back on the hero (nothing else is actually
+       scrollable/visible behind the overlay yet) — the scroll-based
+       sectionObserver won't fire to fix this on its own since closing
+       never triggers a real scroll. */
+    navLinkEls.forEach((link) => link.classList.toggle('active', link.dataset.section === 'hero'));
+    projectsOpen = false;
+    if (projectsNavBackBtn) projectsNavBackBtn.classList.remove('is-visible');
+    updateHero();
   }
 
   projectsOpenTriggers.forEach((el) => el && el.addEventListener('click', openProjects));

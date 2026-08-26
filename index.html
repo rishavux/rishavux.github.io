@@ -7,7 +7,7 @@
 <meta name="description" content="Rishav Gautam, UX designer — portfolio and case studies." />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400;1,9..144,500&family=Montserrat:wght@400;500;600;700&family=Cinzel:wght@500&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400;1,9..144,500&family=Montserrat:wght@400;500;600;700&family=Cinzel:wght@500&family=Baloo+2:wght@500;600;700&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -49,13 +49,46 @@
           <span></span><span></span><span></span>
         </button>
         <ul class="nav-links" id="nav-links">
-          <li><a href="#hero" class="nav-link active" data-section="hero">Home</a></li>
-          <li><a href="#about" class="nav-link" data-section="about">About Me</a></li>
-          <li><a href="#projects" class="nav-link" data-section="projects">Projects</a></li>
+          <li>
+            <a href="#hero" class="nav-link active" data-section="hero">
+              <svg class="nav-link-icon" viewBox="50.5 13.5 37 37" fill="none" aria-hidden="true">
+                <path d="M64.1472 15.5C57.7232 18.0813 52.5 23.6822 52.5 31.0283C52.5 35.6621 54.3408 40.1061 57.6173 43.3827C60.8939 46.6592 65.3379 48.5 69.9717 48.5C77.3178 48.5 82.9187 43.2768 85.5 36.8528C61.9783 41.2858 61.9233 24.9233 64.1472 15.5Z" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              Home
+            </a>
+          </li>
+          <li>
+            <a href="#about" class="nav-link" data-section="about">
+              <svg class="nav-link-icon" viewBox="292 15.5 37 37" fill="none" aria-hidden="true">
+                <path d="M310.5 20.6935C317.854 20.6935 323.806 26.6449 323.806 34C323.806 41.3539 317.855 47.3065 310.5 47.3065C303.146 47.3065 297.194 41.3551 297.194 34C297.194 26.6461 303.145 20.6935 310.5 20.6935ZM310.5 17.5C301.387 17.5 294 24.8873 294 34C294 43.1127 301.387 50.5 310.5 50.5C319.613 50.5 327 43.1127 327 34C327 24.8873 319.613 17.5 310.5 17.5ZM310.5 28.6774C307.56 28.6774 305.177 31.0604 305.177 34C305.177 36.9396 307.56 39.3226 310.5 39.3226C313.44 39.3226 315.823 36.9396 315.823 34C315.823 31.0604 313.44 28.6774 310.5 28.6774Z" fill="currentColor"/>
+              </svg>
+              About Me
+            </a>
+          </li>
+          <li>
+            <a href="#projects" class="nav-link" data-section="projects">
+              <svg class="nav-link-icon" viewBox="552.214 15.5 37 37" fill="none" aria-hidden="true">
+                <path fill-rule="evenodd" clip-rule="evenodd" d="M556.966 33.8904C556.966 34.2191 556.992 34.5672 557.018 34.8959H561.098C562.406 34.8959 563.766 34.8959 564.997 34.5672C566.808 34.0902 568.42 33.059 570.108 31.9439L570.16 31.9182C570.714 31.5121 571.32 31.2156 571.971 31.0094C572.802 30.7838 573.66 30.7064 574.51 30.7064H583.901C583.598 29.4238 583.121 28.1863 582.438 27.052H558.777C557.591 29.1273 556.966 31.4992 556.966 33.8904ZM580.962 42.7334C576.077 48.4504 567.466 49.1594 561.749 44.2416C561.194 43.7646 560.692 43.2619 560.24 42.7334H580.962ZM579.377 36.8617C579.377 38.1701 578.294 39.2529 576.985 39.2529C575.677 39.2529 574.594 38.1701 574.594 36.8617C574.594 35.5533 575.677 34.4705 576.985 34.4705C578.294 34.4705 579.377 35.5533 579.377 36.8617ZM584.185 32.7561H574.491C573.834 32.7303 573.157 32.8076 572.525 32.9559C572.074 33.1041 571.642 33.3361 571.268 33.6133L571.217 33.6391L571.21 33.6455C569.477 34.7799 567.665 35.9594 565.526 36.5395C564.191 36.8939 562.831 36.9197 561.523 36.9197H557.321C557.624 38.2281 558.126 39.5172 558.803 40.6709H582.425C583.637 38.602 584.262 36.2365 584.236 33.8453C584.236 33.5166 584.217 33.1814 584.191 32.8334L584.185 32.7561ZM561.749 23.5135C567.491 18.6279 576.077 19.3047 580.962 25.0281H560.24C560.692 24.4996 561.194 23.9646 561.749 23.5135ZM570.714 50.5C579.828 50.5 587.214 43.1137 587.214 34C587.214 24.8863 579.828 17.5 570.714 17.5C561.6 17.5 554.214 24.8863 554.214 34C554.214 43.1137 561.6 50.5 570.714 50.5Z" fill="currentColor"/>
+              </svg>
+              Projects
+            </a>
+          </li>
         </ul>
       </nav>
     </section>
   </div>
+
+  <!-- Lives in the same docked top-left corner as the avatar/name (see
+       .projects-nav-back-btn in style.css — positioned off var(--dock-top)/
+       var(--dock-side) directly, no JS math needed since it's a fixed
+       spot, not part of the avatar/name morph animation). Only
+       relevant — and only visible/clickable — while the Projects panel
+       is open; script.js's openProjects/closeProjects toggle
+       .is-visible and also shift the avatar/name dock target right to
+       make room for it. -->
+  <button type="button" class="projects-nav-back-btn" id="projects-nav-back-btn" aria-label="Back">
+    <span class="projects-back-chevron"></span>
+  </button>
 
   <!-- Embedded pixel-for-pixel in hero-bg.jpg (see remeasureStupaLight /
        updateStupaLight in script.js) — sized and positioned by the same
@@ -169,12 +202,6 @@
   </div>
 
   <section class="projects" id="projects" aria-hidden="true">
-    <div class="projects-back-row">
-      <button type="button" class="projects-back-btn" id="projects-back-btn" aria-label="Back">
-        <span class="projects-back-chevron"></span>
-      </button>
-      <span class="projects-back-label">My Projects</span>
-    </div>
     <div class="project-grid">
       <a class="project-card accent-red" href="https://rishavux.github.io/ez-case-study/" target="_blank" rel="noopener" data-reveal="left">
         <div class="project-thumb project-thumb--ez">

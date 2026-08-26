@@ -104,7 +104,7 @@
      and the CSS end-state can never drift out of sync. */
   --dock-top: 20px;
   --dock-side: 28px;
-  --avatar-base: 150px;
+  --avatar-base: 190px;
   --avatar-dock: 66px;
   /* Vertical center of the docked avatar circle — the nav links are
      centered on this line so they read as sharing a row with the
@@ -246,7 +246,11 @@ section { position: relative; }
   position: absolute;
   top: 0; left: 0; right: 0;
   height: clamp(170px, 22vh, 280px);
-  z-index: 150;
+  /* Above .projects (190) now that it's a direct body child (see
+     script.js) rather than trapped inside .hero's own stacking
+     context — needs to show over the Projects panel too when the nav
+     is forced docked from there. */
+  z-index: 195;
   background: linear-gradient(180deg,
     rgba(26, 81, 170, 0.4) 0%,
     rgba(30, 91, 179, 0.37) 22%,
@@ -306,7 +310,7 @@ section { position: relative; }
   height: var(--avatar-base);
   border-radius: 50%;
   object-fit: cover;
-  border: 3px solid rgba(255, 255, 255, 0.85);
+  border: 5px solid rgba(255, 255, 255, 0.85);
   box-shadow: var(--shadow-soft);
   flex-shrink: 0;
   transform-origin: 0 0;
@@ -314,8 +318,9 @@ section { position: relative; }
   z-index: 210;
 }
 .hero-morph-name {
-  font-family: var(--font-display);
+  font-family: 'Baloo 2', var(--font-display);
   font-weight: 500;
+  letter-spacing: 0.02em;
   font-size: clamp(2.1rem, 3.4vw + 1rem, 3.8rem);
   color: var(--surface-50);
   white-space: nowrap;
@@ -323,6 +328,50 @@ section { position: relative; }
   transform-origin: 0 0;
   will-change: transform;
   z-index: 210;
+}
+
+/* Own fixed spot at the same --dock-top/--dock-side/--avatar-dock
+   coordinates the avatar sits at once docked — not part of the
+   avatar/name morph animation (no JS-driven transform needed, it's a
+   constant position), just faded in/out and made interactive via
+   .is-visible, toggled alongside the Projects panel itself in
+   script.js. Same vertical-centering technique as .hero-nav below,
+   for exact row alignment. */
+.projects-nav-back-btn {
+  position: fixed;
+  top: var(--dock-center-y);
+  left: var(--dock-side);
+  transform: translateY(-50%);
+  width: var(--avatar-dock);
+  height: var(--avatar-dock);
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  background: rgba(21, 21, 21, 0.4);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 220;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s var(--ease), background 0.3s var(--ease), border-color 0.3s var(--ease);
+}
+.projects-nav-back-btn.is-visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+.projects-nav-back-btn:hover {
+  background: rgba(21, 21, 21, 0.6);
+  border-color: rgba(255, 255, 255, 0.85);
+}
+.projects-back-chevron {
+  width: 14px;
+  height: 14px;
+  border-right: 3px solid var(--surface-50);
+  border-bottom: 3px solid var(--surface-50);
+  transform: rotate(135deg) translate(-2px, -2px);
 }
 
 .hero-nav {
@@ -364,7 +413,9 @@ section { position: relative; }
   padding: 0.4rem;
 }
 .nav-link {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
   padding: 0.55rem 1.15rem;
   border-radius: 999px;
   font-size: 0.85rem;
@@ -383,6 +434,16 @@ section { position: relative; }
   background: var(--saffron-700);
   border-color: var(--saffron-700);
   color: var(--ink-900);
+}
+/* Exact icons from the user's Figma reference (node 158:94) — a
+   stroke-crescent Moon (Home), a ringed Sun (About Me), and the
+   Iconify selfhst:jupiterone mark reused as the Projects icon.
+   currentColor/stroke so each just follows its link's own color,
+   active state included. */
+.nav-link-icon {
+  width: 19px;
+  height: 19px;
+  flex-shrink: 0;
 }
 
 @media (max-width: 760px) {
@@ -407,7 +468,7 @@ section { position: relative; }
     transition: opacity 0.25s var(--ease), transform 0.25s var(--ease);
   }
   .nav-links.is-open { opacity: 1; transform: translateY(0) scale(1); pointer-events: auto; }
-  .nav-link { text-align: center; }
+  .nav-link { justify-content: center; }
 }
 
 /* The only entry point into the dock transition — position is set
@@ -703,23 +764,29 @@ section { position: relative; }
   letter-spacing: 0.02em;
   transition: background 0.3s var(--ease), color 0.3s var(--ease), border-color 0.3s var(--ease), transform 0.3s var(--ease);
 }
+/* Each CTA now pulls from a different color group in the palette
+   (oxide-red here, mineral-blue below) instead of both matching the
+   nav's saffron — part of spreading real color variety across the
+   card instead of leaning on one accent everywhere. -500 shades on a
+   dark photo background need light text for contrast, not ink. */
 .hero-spotlight-btn--primary {
-  background: var(--saffron-700);
-  border: 1px solid var(--saffron-700);
-  color: var(--ink-900);
+  background: var(--oxide-red-500);
+  border: 1px solid var(--oxide-red-500);
+  color: var(--surface-50);
 }
 .hero-spotlight-btn--primary:hover {
-  background: var(--saffron-600);
-  border-color: var(--saffron-600);
+  background: var(--oxide-red-600);
+  border-color: var(--oxide-red-600);
   transform: translateY(-2px);
 }
 .hero-spotlight-btn--secondary {
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.22);
+  background: var(--mineral-blue-500);
+  border: 1px solid var(--mineral-blue-500);
   color: var(--surface-50);
 }
 .hero-spotlight-btn--secondary:hover {
-  background: rgba(255, 255, 255, 0.16);
+  background: var(--mineral-blue-600);
+  border-color: var(--mineral-blue-600);
   transform: translateY(-2px);
 }
 
@@ -919,51 +986,9 @@ section { position: relative; }
 @media (prefers-reduced-motion: reduce) {
   .projects { transition: none; }
 }
-/* Positioned via .projects's own fixed box (it's already a valid
-   containing block for position:absolute), independent of the grid's
-   own centering below, so it can't shift as card content reflows. */
-.projects-back-row {
-  position: absolute;
-  top: clamp(20px, 4vh, 32px);
-  left: clamp(20px, 4vw, 40px);
-  display: flex;
-  align-items: center;
-  gap: 1.4rem;
-}
-/* Same glass-circle language as .hero-scroll-btn. */
-.projects-back-btn {
-  flex-shrink: 0;
-  width: 52px;
-  height: 52px;
-  border-radius: 50%;
-  border: 1px solid rgba(255, 255, 255, 0.55);
-  background: rgba(21, 21, 21, 0.4);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: background 0.3s var(--ease), border-color 0.3s var(--ease), transform 0.3s var(--ease);
-}
-.projects-back-btn:hover {
-  background: rgba(21, 21, 21, 0.6);
-  border-color: rgba(255, 255, 255, 0.85);
-  transform: translateX(-3px);
-}
-.projects-back-label {
-  font-family: var(--font-display);
-  font-weight: 500;
-  font-size: clamp(1.2rem, 0.8vw + 0.95rem, 1.6rem);
-  color: var(--surface-50);
-}
-.projects-back-chevron {
-  width: 14px;
-  height: 14px;
-  border-right: 3px solid var(--surface-50);
-  border-bottom: 3px solid var(--surface-50);
-  transform: rotate(135deg) translate(-2px, -2px);
-}
+/* Lives in the real docked nav's top-left corner, not inside .projects
+   itself — see .projects-nav-back-btn below (defined near .hero-nav)
+   and index.html for why. */
 .project-grid {
   width: 100%;
   max-width: 1180px;
