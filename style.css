@@ -1031,7 +1031,7 @@ section { position: relative; }
   gap: clamp(0.7rem, 1.4vw, 1.1rem);
   transition: transform 0.6s var(--ease);
 }
-.project-card:hover .pp-thumb-logo { transform: scale(1.06); }
+.project-card:hover .pp-thumb-logo { transform: scale(1.05); }
 .pp-thumb-icon {
   height: clamp(34px, 5.2vw, 54px);
   width: auto;
@@ -1058,7 +1058,7 @@ section { position: relative; }
   max-width: 100%;
   transition: transform 0.6s var(--ease);
 }
-.project-card:hover .ez-thumb-logo { transform: scale(1.06); }
+.project-card:hover .ez-thumb-logo { transform: scale(1.05); }
 .ez-thumb-logo svg {
   height: clamp(34px, 5.2vw, 54px);
   width: auto;
@@ -1096,10 +1096,18 @@ section { position: relative; }
    edge above the card's actual (still rounded) bottom corners. */
 .project-body {
   flex: 1;
-  padding: clamp(1.5rem, 2vw + 1.8vh, 2.4rem) clamp(1.25rem, 2vw + 1.4vh, 2rem);
+  /* A little extra top padding specifically, on top of the shared
+     clamp — the role line needs real breathing room now that it's
+     top-anchored instead of vertically centered. */
+  padding: clamp(1.9rem, 2.6vw + 2.2vh, 2.9rem) clamp(1.25rem, 2vw + 1.4vh, 2rem) clamp(1.5rem, 2vw + 1.8vh, 2.4rem);
   display: grid;
-  grid-template-columns: 60% 40%;
-  align-items: center;
+  grid-template-columns: 50% 50%;
+  /* start, not center — description text wraps to a different number
+     of lines on each card, so centering .project-info made the role
+     line land at a different height on each card (whichever had the
+     shorter description sat lower). Top-aligning both columns pins
+     the role line to the exact same spot on both cards regardless. */
+  align-items: start;
   gap: 1rem;
 }
 .project-info {
@@ -1109,6 +1117,7 @@ section { position: relative; }
   min-width: 0;
 }
 .project-role {
+  white-space: nowrap;
   font-family: var(--font-body);
   font-weight: 700;
   font-size: clamp(0.68rem, 0.3vw + 0.6rem, 0.78rem);
@@ -1119,25 +1128,28 @@ section { position: relative; }
 .project-desc {
   font-family: var(--font-display);
   font-weight: 500;
-  font-size: clamp(1.1rem, 0.6vw + 1vh + 0.75rem, 1.4rem);
+  font-size: clamp(0.88rem, 0.35vw + 0.5vh + 0.65rem, 1.05rem);
   line-height: 1.4;
   color: var(--surface-50);
   max-width: 32ch;
 }
-.project-card.accent-blue .project-role { color: var(--surface-50); }
 /* Sized to fill its own dedicated 40% grid column, not just shrunk to
-   its intrinsic size within a shared row. Scales up more aggressively
-   than anything else on hover (the thumb logos only go to 1.06) so
-   the resize effect reads most prominently on the actual product
-   image — .project-card's own overflow:hidden keeps the zoom clipped
-   to the card's rounded edges instead of spilling out. */
+   its intrinsic size within a shared row. Hover scale matches the
+   thumb logos' (1.05, see .ez-thumb-logo/.pp-thumb-logo) — one
+   consistent, subtle hover language across everything in the card,
+   rather than each element scaling by its own amount. */
 .project-mockup {
   width: 100%;
   height: auto;
-  transition: transform 0.5s var(--ease);
+  /* .project-body is align-items:start (see above, for the text
+     column) — this overrides just the image column back to centered,
+     both axes, within its row. */
+  align-self: center;
+  justify-self: center;
+  transition: transform 0.6s var(--ease);
 }
 .project-card:hover .project-mockup {
-  transform: scale(1.16);
+  transform: scale(1.05);
 }
 /* Visual-only indicator — a <span>, not a real link. The whole card is
    already one <a> to the case study (nested <a>s aren't valid HTML),
