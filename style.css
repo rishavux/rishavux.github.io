@@ -591,6 +591,137 @@ section { position: relative; }
   -webkit-backdrop-filter: blur(18px);
   clip-path: inset(0 100% 0 0);
 }
+.hero-spotlight-content {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: stretch;
+  text-align: center;
+  padding: clamp(28px, 4vw, 56px);
+}
+.hero-spotlight-line {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: clamp(1.1rem, 1vw + 0.75rem, 1.6rem);
+  line-height: 1.3;
+  color: var(--surface-50);
+  white-space: nowrap;
+  opacity: 0;
+  transform: translateY(14px);
+  transition: opacity 1.2s var(--ease), transform 1.2s var(--ease);
+}
+.hero-spotlight-highlight {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: clamp(1.6rem, 1.8vw + 1rem, 2.6rem);
+  line-height: 1.2;
+  color: var(--saffron-600);
+  margin-top: 0.2rem;
+  opacity: 0;
+  transform: translateY(14px);
+  transition: opacity 1.4s var(--ease) 0.5s, transform 1.4s var(--ease) 0.5s;
+}
+.hero-spotlight-card.is-revealed .hero-spotlight-line,
+.hero-spotlight-card.is-revealed .hero-spotlight-highlight {
+  opacity: 1;
+  transform: none;
+}
+.hero-spotlight-meta {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.5rem;
+  margin-top: clamp(24px, 3.4vw, 48px);
+  /* Width set in px from script.js, matched to the buttons row below
+     (which is itself matched to the highlight line's rendered width)
+     — combined with each item being flex: 1 1 0 (same split the
+     buttons use), that puts "My work spans" directly above the My
+     Projects button and "I am located in" directly above About Me,
+     instead of just sharing a center point with them. */
+  margin-inline: auto;
+}
+.hero-spotlight-meta-item {
+  flex: 1 1 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0.6rem;
+  opacity: 0;
+  transform: translateY(14px);
+  transition: opacity 1s var(--ease) 0.75s, transform 1s var(--ease) 0.75s;
+}
+.hero-spotlight-card.is-revealed .hero-spotlight-meta-item {
+  opacity: 1;
+  transform: none;
+}
+.hero-spotlight-meta-icon {
+  width: clamp(32px, 3vw, 46px);
+  height: clamp(32px, 3vw, 46px);
+  opacity: 0.85;
+}
+.hero-spotlight-meta-line {
+  font-family: var(--font-body);
+  font-size: clamp(0.95rem, 0.75vw + 0.6rem, 1.15rem);
+  line-height: 1.4;
+  color: var(--surface-300);
+}
+.hero-spotlight-meta-line--bold {
+  font-size: clamp(1.05rem, 0.85vw + 0.7rem, 1.3rem);
+  font-weight: 700;
+  color: var(--surface-50);
+}
+.hero-spotlight-actions {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  margin-top: clamp(28px, 3.6vw, 48px);
+  /* Width is set in px from script.js, matched every reflow to
+     #hero-spotlight-highlight's own rendered width — so this row's
+     outer edges land exactly under the "I" of Intelligence and the
+     "e" of Culture instead of just sharing the same center axis. */
+  margin-inline: auto;
+  /* The card itself is pointer-events:none (see .hero-spotlight-card
+     above) — these are the first real interactive elements inside it,
+     so hit-testing has to be explicitly turned back on here. */
+  pointer-events: auto;
+  opacity: 0;
+  transform: translateY(14px);
+  transition: opacity 1s var(--ease) 0.95s, transform 1s var(--ease) 0.95s;
+}
+.hero-spotlight-card.is-revealed .hero-spotlight-actions {
+  opacity: 1;
+  transform: none;
+}
+.hero-spotlight-btn {
+  flex: 1 1 0;
+  text-align: center;
+  padding: 0.9rem 1.4rem;
+  border-radius: 999px;
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  transition: background 0.3s var(--ease), color 0.3s var(--ease), border-color 0.3s var(--ease), transform 0.3s var(--ease);
+}
+.hero-spotlight-btn--primary {
+  background: var(--saffron-700);
+  border: 1px solid var(--saffron-700);
+  color: var(--ink-900);
+}
+.hero-spotlight-btn--primary:hover {
+  background: var(--saffron-600);
+  border-color: var(--saffron-600);
+  transform: translateY(-2px);
+}
+.hero-spotlight-btn--secondary {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  color: var(--surface-50);
+}
+.hero-spotlight-btn--secondary:hover {
+  background: rgba(255, 255, 255, 0.16);
+  transform: translateY(-2px);
+}
 
 /* ═══════════════════════════════════════════════════════════
    ABOUT
@@ -752,28 +883,100 @@ section { position: relative; }
    PROJECTS
 ═══════════════════════════════════════════════════════════ */
 .projects {
-  background: var(--ink-950);
-  padding: clamp(4rem, 9vw, 7rem) clamp(1.25rem, 6vw, 5rem);
+  /* A full-viewport panel that slides in over everything on top of the
+     hero, rather than a normal in-flow section you scroll down to —
+     the docked avatar/name/nav (z-index 200+, see .hero-nav) sits
+     above this (190) so it stays exactly where it is, fully clickable,
+     the whole time this is open; it's the thing that toggles the
+     panel and the way back out (see the projects-open/close wiring in
+     script.js), not a close button on the panel itself. */
+  position: fixed;
+  inset: 0;
+  z-index: 190;
+  /* No scroll — this is a single fixed 100vh/100dvh panel, so
+     everything inside (image + heading + cards) is sized in vh-aware
+     clamp()s below to actually fit, rather than relying on overflow. */
+  overflow: hidden;
+  background-image: url('images/project-bg.jpg');
+  /* Pinned to 100% of the panel's width (never cropped the way
+     `cover` would) — height follows the image's own aspect ratio,
+     whatever that comes to, rather than being capped to fit the
+     panel's height the way `contain` would narrow it. Anchored top so
+     any extra height just extends past the fold, not the width. */
+  background-size: 100% auto;
+  background-position: center;
+  background-repeat: no-repeat;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  padding: clamp(1.25rem, 4vh, 2.5rem) clamp(1.25rem, 6vw, 5rem);
+  transform: translateX(100%);
+  transition: transform 0.7s var(--ease);
 }
-.projects .eyebrow { color: var(--saffron-700); }
-.projects-heading {
+.projects.is-open {
+  transform: translateX(0);
+}
+@media (prefers-reduced-motion: reduce) {
+  .projects { transition: none; }
+}
+/* Positioned via .projects's own fixed box (it's already a valid
+   containing block for position:absolute), independent of the grid's
+   own centering below, so it can't shift as card content reflows. */
+.projects-back-row {
+  position: absolute;
+  top: clamp(20px, 4vh, 32px);
+  left: clamp(20px, 4vw, 40px);
+  display: flex;
+  align-items: center;
+  gap: 1.4rem;
+}
+/* Same glass-circle language as .hero-scroll-btn. */
+.projects-back-btn {
+  flex-shrink: 0;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  background: rgba(21, 21, 21, 0.4);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.3s var(--ease), border-color 0.3s var(--ease), transform 0.3s var(--ease);
+}
+.projects-back-btn:hover {
+  background: rgba(21, 21, 21, 0.6);
+  border-color: rgba(255, 255, 255, 0.85);
+  transform: translateX(-3px);
+}
+.projects-back-label {
   font-family: var(--font-display);
   font-weight: 500;
-  font-size: clamp(1.9rem, 1.8vw + 1.3rem, 2.9rem);
+  font-size: clamp(1.2rem, 0.8vw + 0.95rem, 1.6rem);
   color: var(--surface-50);
-  margin: 0.5rem 0 clamp(2.5rem, 6vw, 4rem);
-  max-width: 1180px;
-  margin-left: auto;
-  margin-right: auto;
+}
+.projects-back-chevron {
+  width: 14px;
+  height: 14px;
+  border-right: 3px solid var(--surface-50);
+  border-bottom: 3px solid var(--surface-50);
+  transform: rotate(135deg) translate(-2px, -2px);
 }
 .project-grid {
+  width: 100%;
   max-width: 1180px;
-  margin: 0 auto;
+  /* Top margin clears the absolutely-positioned .projects-back-row
+     sitting above it (now that .projects is top-aligned rather than
+     vertically centering this grid). */
+  margin: clamp(88px, 14vh, 128px) auto 0;
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: clamp(1.5rem, 3vw, 2.5rem);
+  gap: clamp(1rem, 2vw + 1vh, 2rem);
 }
 .project-card {
+  position: relative;
   display: flex;
   flex-direction: column;
   border-radius: 24px;
@@ -788,40 +991,179 @@ section { position: relative; }
   background: rgba(255, 255, 255, 0.06);
 }
 .project-thumb {
-  aspect-ratio: 16/11;
+  /* Height is capped in vh, not derived from the column's own width
+     (a plain aspect-ratio would), so the thumb can't grow past what
+     actually fits on a short/wide viewport — that's what let the grid
+     overflow the panel before. position:relative anchors
+     .project-view-icon (see below), which now lives inside here so it
+     can be centered on the thumb's own height, not the whole card's. */
+  position: relative;
+  height: clamp(64px, 15vh, 150px);
   overflow: hidden;
   background: var(--ink-900);
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
+  /* Same left/right padding as .project-body below, so the logo lines
+     up with the text/card content instead of being centered on its
+     own. */
+  padding: 0 clamp(1.25rem, 2vw + 1.4vh, 2rem);
 }
-.project-thumb img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.6s var(--ease); }
-.project-card:hover .project-thumb img { transform: scale(1.06); }
-.project-body { padding: clamp(1.4rem, 3vw, 2rem); }
-.project-body h3 {
+/* Brand fills. #D4E2ED is already --mineral-blue-200; the EZ case
+   study's own header background (#FFFDF7, --harvest-gold-100 over
+   there) is close to but not quite this site's --saffron-100, so it's
+   spelled out directly to match that page exactly rather than reusing
+   the near-but-not-equal token. */
+.project-thumb--ez { background: #fef7e9; }
+.project-thumb--pp { background: var(--mineral-blue-200); }
+/* logo-pp.svg is one flat image with the wordmark's own bounding box
+   sitting lower than the icon's (cap-height text vs. a near-full-
+   height house mark) — baseline-aligned in the original file, which
+   read as the wordmark sitting too low against the icon. Sliced into
+   two SVGs, each viewBox-cropped tight to its own content (icon:
+   0,0–73.4,75.4 / wordmark: 87.2,31.3–557.1,75.4 in the original
+   file's coordinate space — no path data changed, just the visible
+   window), so flex align-items:center below centers them on their
+   true visual heights instead of their original shared baseline. */
+.pp-thumb-logo {
+  display: flex;
+  align-items: center;
+  gap: clamp(0.7rem, 1.4vw, 1.1rem);
+  transition: transform 0.6s var(--ease);
+}
+.project-card:hover .pp-thumb-logo { transform: scale(1.06); }
+.pp-thumb-icon {
+  height: clamp(34px, 5.2vw, 54px);
+  width: auto;
+  flex-shrink: 0;
+}
+.pp-thumb-text {
+  height: clamp(16px, 2.6vw, 26px);
+  width: auto;
+  flex-shrink: 0;
+  /* Small manual nudge on top of the tight-crop centering — true
+     optical center still read as slightly high. */
+  position: relative;
+  top: 3px;
+}
+/* Same logo + wordmark pairing as the EZ Brow & Beauty case study's
+   own header (ez-porfolio-piece/index.html), reproduced here rather
+   than screenshotted so it stays crisp at any thumbnail size. Icon
+   height matches .pp-thumb-icon exactly (each keeps its own aspect
+   ratio via width:auto) so the two logos read as the same scale. */
+.ez-thumb-logo {
+  display: flex;
+  align-items: center;
+  gap: clamp(0.3rem, 0.7vw, 0.5rem);
+  max-width: 100%;
+  transition: transform 0.6s var(--ease);
+}
+.project-card:hover .ez-thumb-logo { transform: scale(1.06); }
+.ez-thumb-logo svg {
+  height: clamp(34px, 5.2vw, 54px);
+  width: auto;
+  flex-shrink: 0;
+}
+.ez-thumb-title {
+  font-family: 'Cinzel', serif;
+  font-weight: 500;
+  font-size: clamp(1.7rem, 3vw, 2.4rem);
+  line-height: 1;
+  color: var(--ink-900);
+  white-space: nowrap;
+}
+.ez-thumb-amp { color: var(--oxide-red-700); }
+/* Solid brand fills on the body only — the thumb above stays on its
+   own light patch (see .project-thumb--ez/--pp) since #8D2318 is the
+   EZ logo's own red path color: filling the thumb the same solid red
+   would make that half of the mark disappear into the background.
+   Teal is the PP logo's own icon color (#189293 in images/logo-pp.svg),
+   not this site's --mineral-blue token, since the ask was to match
+   the logo exactly. */
+.project-card.accent-red .project-body { background: #8d2318; }
+.project-card.accent-blue .project-body { background: #189293; }
+/* Shared 60/40 grid on both cards — text column / image column — even
+   though only PP has its image wired up so far (EZ's second column
+   just sits empty until that asset lands). Vertical padding stays
+   tighter than horizontal so an image sitting beside the text doesn't
+   grow the card's height. flex:1 (.project-card is the flex column
+   containing this + .project-thumb above) makes this fill whatever
+   height is left in the card rather than just its own content's
+   height — .project-grid's default grid stretch already equalizes
+   the two cards' overall height (PP's is taller because of its now-
+   larger mockup image), so without this the solid color fill was
+   stopping short of that stretched height, leaving a hard seam/flat
+   edge above the card's actual (still rounded) bottom corners. */
+.project-body {
+  flex: 1;
+  padding: clamp(1.5rem, 2vw + 1.8vh, 2.4rem) clamp(1.25rem, 2vw + 1.4vh, 2rem);
+  display: grid;
+  grid-template-columns: 60% 40%;
+  align-items: center;
+  gap: 1rem;
+}
+.project-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  min-width: 0;
+}
+.project-role {
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: clamp(0.68rem, 0.3vw + 0.6rem, 0.78rem);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.6);
+}
+.project-desc {
   font-family: var(--font-display);
   font-weight: 500;
-  font-size: clamp(1.25rem, 1vw + 0.9rem, 1.6rem);
+  font-size: clamp(1.1rem, 0.6vw + 1vh + 0.75rem, 1.4rem);
+  line-height: 1.4;
   color: var(--surface-50);
-  margin-bottom: 0.6rem;
+  max-width: 32ch;
 }
-.project-body p {
-  color: var(--surface-600);
-  font-size: 0.95rem;
-  margin-bottom: 1.2rem;
-  max-width: 46ch;
+.project-card.accent-blue .project-role { color: var(--surface-50); }
+/* Sized to fill its own dedicated 40% grid column, not just shrunk to
+   its intrinsic size within a shared row. Scales up more aggressively
+   than anything else on hover (the thumb logos only go to 1.06) so
+   the resize effect reads most prominently on the actual product
+   image — .project-card's own overflow:hidden keeps the zoom clipped
+   to the card's rounded edges instead of spilling out. */
+.project-mockup {
+  width: 100%;
+  height: auto;
+  transition: transform 0.5s var(--ease);
 }
-.project-cta {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  font-weight: 600;
-  font-size: 0.88rem;
-  color: var(--accent);
-  transition: gap 0.25s var(--ease);
+.project-card:hover .project-mockup {
+  transform: scale(1.16);
 }
-.project-card:hover .project-cta { gap: 0.65rem; }
-
+/* Visual-only indicator — a <span>, not a real link. The whole card is
+   already one <a> to the case study (nested <a>s aren't valid HTML),
+   so this just reinforces that the card is clickable. Lives inside
+   .project-thumb now (its position:relative anchor), vertically
+   centered on the thumb's own height rather than offset from the
+   card's top edge — colored ink-900 (dark) since it sits over the
+   light thumb background, not the surface-50 used elsewhere. */
+.project-view-icon {
+  position: absolute;
+  top: 50%;
+  right: clamp(1rem, 1.6vw, 1.5rem);
+  transform: translateY(-50%);
+  color: var(--ink-900);
+  opacity: 0.7;
+  transition: opacity 0.3s var(--ease), transform 0.3s var(--ease);
+}
+.project-card:hover .project-view-icon {
+  opacity: 1;
+  transform: translateY(-50%) translateX(2px);
+}
+.project-view-icon svg {
+  display: block;
+  width: 34px;
+  height: 34px;
+}
 @media (max-width: 760px) {
   .project-grid { grid-template-columns: 1fr; }
 }

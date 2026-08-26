@@ -1,3 +1,16 @@
+/* The browser's own scroll restoration (returning to wherever you were
+   scrolled to on refresh/back-forward) fights this page's model: the
+   hero's docked-avatar state follows scrollY directly, but the stupa-
+   light/beam/spotlight-card reveal is separate state that only ever
+   moves via the down-button/avatar click handlers below and always
+   starts reset to 0 on load — so landing mid-scroll on refresh showed
+   a docked nav with a reveal that hadn't played, i.e. a broken-looking
+   mismatched state. Every load now forces back to the real start. */
+if ('scrollRestoration' in history) {
+  history.scrollRestoration = 'manual';
+}
+window.scrollTo(0, 0);
+
 document.addEventListener('DOMContentLoaded', () => {
   const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -73,6 +86,10 @@ document.addEventListener('DOMContentLoaded', () => {
   const stupaLightBeam = document.getElementById('stupa-light-beam');
   const stupaLightBeamFar = document.getElementById('stupa-light-beam-far');
   const heroSpotlightCard = document.getElementById('hero-spotlight-card');
+  const heroSpotlightContent = heroSpotlightCard.querySelector('.hero-spotlight-content');
+  const heroSpotlightHighlight = document.getElementById('hero-spotlight-highlight');
+  const heroSpotlightMeta = document.getElementById('hero-spotlight-meta');
+  const heroSpotlightActions = document.getElementById('hero-spotlight-actions');
 
   const rootStyles = getComputedStyle(document.documentElement);
   const DOCK_TOP = parseFloat(rootStyles.getPropertyValue('--dock-top'));
@@ -170,7 +187,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const CARD_W_MIN = 640;
   const CARD_W_VW = 0.64;
   const CARD_W_MAX = 1100;
-  const CARD_ASPECT = 660 / 1312;
   /* How far down the card's height the glow sits (matches the ~0.3
      ratio from the original Figma frame). Fixed relative to the glow
      — NOT derived from viewport centering — so the beam's taper always
@@ -205,7 +221,20 @@ document.addEventListener('DOMContentLoaded', () => {
        for the whole scroll range, unlike the light's y-position. */
     const cardPaddingRight = clampPx(CARD_PADDING_RIGHT_MIN, vw * CARD_PADDING_RIGHT_VW, CARD_PADDING_RIGHT_MAX);
     const cardW = clampPx(CARD_W_MIN, vw * CARD_W_VW, CARD_W_MAX);
-    const cardH = cardW * CARD_ASPECT;
+    /* Width has to land on the actual element (and the meta/actions
+       rows have to be synced to their final widths, see
+       syncSpotlightActionsWidth below) BEFORE measuring height — text
+       wrapping, and therefore how tall the content is, depends on it. */
+    heroSpotlightCard.style.width = `${cardW}px`;
+    syncSpotlightActionsWidth();
+    /* Height is content-driven, not a fixed aspect ratio — the frame
+       holds real, variable-length copy now (headline + role/location +
+       CTAs), so it has to grow or shrink with whatever that content
+       actually needs at this width. A fixed ratio here (the original
+       empty-frame Figma proportions) would leave the content clipped
+       or overflowing past the card's own background/padding, so top
+       and bottom padding stop matching. */
+    const cardH = heroSpotlightContent.offsetHeight;
     const cardLeftViewport = vw - cardPaddingRight - cardW;
     const cardLeft = cardLeftViewport - lightXPx;
     const cardTop = -CARD_TOP_FRACTION * cardH - CARD_EXTRA_LIFT;
@@ -218,7 +247,6 @@ document.addEventListener('DOMContentLoaded', () => {
        scroll, so this is stable), and top is kept in sync with the
        live, pan-dependent yPx every scroll frame in updateStupaLight(). */
     heroSpotlightCard.style.left = `${lightXPx + cardLeft}px`;
-    heroSpotlightCard.style.width = `${cardW}px`;
     heroSpotlightCard.style.height = `${cardH}px`;
 
     /* Beam bounding box: left edge at the glow (x=0), right edge at
@@ -264,6 +292,23 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  /* Buttons row AND the role/location row above it are both pinned to
+     the exact rendered width of the "Intelligence, Behavior & Culture"
+     line — clearing the inline widths first so the highlight can size
+     to its own text naturally before being measured, otherwise a stale
+     width from a previous (larger) viewport would lock it too wide.
+     Giving both rows the same width, with matching flex:1 1 0 items
+     and gap (see style.css), is what actually stacks "My work spans"
+     directly over the My Projects button rather than just sharing a
+     center point with it. */
+  function syncSpotlightActionsWidth() {
+    heroSpotlightActions.style.width = '';
+    heroSpotlightMeta.style.width = '';
+    const w = `${heroSpotlightHighlight.offsetWidth}px`;
+    heroSpotlightActions.style.width = w;
+    heroSpotlightMeta.style.width = w;
+  }
+
   function updateStupaLight(panPct) {
     const windowTopOrig = (panPct / 100) * lightExcessHOrig;
     const yPx = (STUPA_TOP_ROW - windowTopOrig) * lightScale;
@@ -299,7 +344,7 @@ document.addEventListener('DOMContentLoaded', () => {
     stupaRevealP = t;
     const lightP = smoothstep(0, 0.4, t);
     const beamP = smoothstep(0.15, 0.75, t);
-    const cardP = smoothstep(0.55, 1, t);
+    const cardP = smoothstep(0.55, 0.8, t);
 
     /* "Opening up" rather than panning in: scale from 0 → 1 (an iris/
        aperture growing open), combined with the opacity fade, so the
@@ -333,6 +378,10 @@ document.addEventListener('DOMContentLoaded', () => {
        0→1, so it reads as the beam's leading edge uncovering the
        card, not the card just materializing. */
     heroSpotlightCard.style.clipPath = `inset(0 ${(1 - cardP) * 100}% 0 0)`;
+    /* Text fades/lifts in only once the clip has fully unraveled — a
+       second, layered beat after the card itself is uncovered, rather
+       than fading in underneath the still-moving clip edge. */
+    heroSpotlightCard.classList.toggle('is-revealed', cardP >= 1);
     stupaLight.classList.toggle('is-lit', t >= 1);
   }
 
@@ -584,6 +633,12 @@ document.addEventListener('DOMContentLoaded', () => {
   remeasureTravel();
   remeasureStupaLight();
   renderStupaReveal(0);
+  /* Fraunces (the highlight line's font) loads async — re-sync once it's
+     actually in, since a fallback-font measurement taken before then
+     would leave the buttons row a few px off from the real text width. */
+  if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(syncSpotlightActionsWidth);
+  }
   onScroll();
 
   /* ═══════════════════════════════════════════════════════════
@@ -737,5 +792,43 @@ document.addEventListener('DOMContentLoaded', () => {
     animateScrollTo(heroPin.offsetTop, (eased) => {
       renderStupaReveal(startP * (1 - eased));
     }, 1700);
+    closeProjects();
   });
+
+  /* ═══════════════════════════════════════════════════════════
+     PROJECTS OVERLAY
+     A full-viewport panel (see .projects in style.css) that slides in
+     over the hero on click instead of being scrolled to — the docked
+     avatar/name/nav sits at a higher z-index than the panel, so it
+     stays exactly where it is, fully clickable, the whole time this
+     is open. It's the way in (Projects link / the hero's My Projects
+     button) AND, along with the panel's own top-left back arrow, the
+     way back out (Home link / the docked avatar also close it) — none
+     of these actually move the underlying page, so closing just
+     reveals whatever state it was already in before opening. */
+  const projectsSection = document.getElementById('projects');
+  const projectsOpenTriggers = [
+    document.getElementById('hero-spotlight-projects-btn'),
+    document.querySelector('.nav-link[data-section="projects"]'),
+  ];
+  const projectsCloseTriggers = [
+    document.getElementById('projects-back-btn'),
+    document.querySelector('.nav-link[data-section="hero"]'),
+    document.querySelector('.nav-link[data-section="about"]'),
+    document.querySelector('.hero-spotlight-btn--secondary'),
+  ];
+
+  function openProjects(e) {
+    if (e) e.preventDefault();
+    projectsSection.classList.add('is-open');
+    projectsSection.setAttribute('aria-hidden', 'false');
+    navLinkEls.forEach((link) => link.classList.toggle('active', link.dataset.section === 'projects'));
+  }
+  function closeProjects() {
+    projectsSection.classList.remove('is-open');
+    projectsSection.setAttribute('aria-hidden', 'true');
+  }
+
+  projectsOpenTriggers.forEach((el) => el && el.addEventListener('click', openProjects));
+  projectsCloseTriggers.forEach((el) => el && el.addEventListener('click', closeProjects));
 });
