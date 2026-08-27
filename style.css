@@ -600,11 +600,30 @@ section { position: relative; }
   transform: translate(-50%, -50%);
   border-radius: 50%;
   background: radial-gradient(circle,
-    rgba(255, 246, 190, 0.92) 0%,
+    rgba(255, 238, 170, 0.92) 0%,
     rgba(255, 219, 77, 0.6) 35%,
     rgba(255, 193, 7, 0.24) 65%,
     rgba(255, 193, 7, 0) 100%);
   filter: blur(1px);
+  opacity: 0;
+}
+/* Sits between the core (28px, hot white/yellow) and the glow (160px,
+   soft amber) in both size and paint order — without it the two read
+   as separate circles instead of one falloff, since the core's own
+   gradient is already fully transparent well before the glow's own
+   gradient has ramped up to visible strength at that radius. */
+.stupa-light-inner {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: radial-gradient(circle,
+    rgba(255, 250, 220, 0.85) 0%,
+    rgba(255, 224, 130, 0.55) 45%,
+    rgba(255, 200, 80, 0.22) 80%,
+    rgba(255, 193, 7, 0) 100%);
+  filter: blur(0.5px);
   opacity: 0;
 }
 .stupa-light-core {
@@ -624,6 +643,7 @@ section { position: relative; }
    order decides and reduced motion — which never adds a moving pulse
    at all — still wins for anyone who has it set. */
 #stupa-light.is-lit .stupa-light-glow,
+#stupa-light.is-lit .stupa-light-inner,
 #stupa-light.is-lit .stupa-light-core {
   animation: stupa-light-pulse 3.2s ease-in-out infinite;
 }
@@ -633,6 +653,7 @@ section { position: relative; }
 }
 @media (prefers-reduced-motion: reduce) {
   #stupa-light.is-lit .stupa-light-glow,
+  #stupa-light.is-lit .stupa-light-inner,
   #stupa-light.is-lit .stupa-light-core {
     animation: none;
   }
@@ -658,13 +679,21 @@ section { position: relative; }
   transform: scale(0);
   opacity: 0;
   mix-blend-mode: screen;
+  /* Falloff redistributed to hold more intensity through the midpoint
+     (0.16 still left at 55%, vs. the old curve's 0.045 by 45%) instead
+     of dissolving in the first quarter, so the beam visibly reaches
+     toward the card rather than just flaring at the source. The first
+     two stops nudge warmer/more saturated (255,190,110 vs. the
+     255,200,140 base used everywhere past 15%) for a hotter point of
+     origin, then cool back to the same pale amber the rest of the
+     curve already used. */
   background: linear-gradient(90deg,
-    rgba(255, 238, 200, 0.75) 0%,
-    rgba(255, 225, 170, 0.5) 6%,
-    rgba(255, 215, 150, 0.32) 14%,
-    rgba(255, 205, 140, 0.18) 26%,
-    rgba(255, 200, 140, 0.09) 45%,
-    rgba(255, 200, 140, 0.03) 70%,
+    rgba(255, 190, 110, 0.55) 0%,
+    rgba(255, 205, 135, 0.48) 8%,
+    rgba(255, 220, 160, 0.4) 15%,
+    rgba(255, 210, 150, 0.28) 35%,
+    rgba(255, 205, 145, 0.16) 55%,
+    rgba(255, 200, 140, 0.07) 75%,
     rgba(255, 200, 140, 0) 100%);
 }
 /* Sharper (small-blur) layer, masked to own roughly the first half of
@@ -677,6 +706,11 @@ section { position: relative; }
   mask-image: linear-gradient(90deg, black 0%, black 45%, transparent 80%);
   -webkit-mask-image: linear-gradient(90deg, black 0%, black 45%, transparent 80%);
 }
+/* Ambient bloom (--bloom) gets no mask-image override here — unlike
+   near/far it isn't confined to half the beam's length, it's meant to
+   spill across the whole reach at low, constant strength. Its shape
+   (trapezoid instead of a point at the apex), blur, and opacity cap are
+   all set in remeasureStupaLight()/renderStupaReveal() in script.js. */
 /* Heavily-blurred layer, masked to own roughly the back half — invisible
    near the glow, crossfades in as the near layer fades out, and carries
    the beam the rest of the way to the card with soft, diffuse edges
@@ -962,12 +996,12 @@ section { position: relative; }
   padding: 0.75rem 1.4rem;
   border-radius: clamp(10px, 1.1vw, 16px);
   font-family: 'Baloo 2', var(--font-display);
-  font-size: clamp(1rem, 0.65vw + 0.7rem, 1.15rem);
+  font-size: clamp(1.1rem, 0.75vw + 0.8rem, 1.3rem);
   font-weight: 500;
   letter-spacing: 0.02em;
   color: var(--ink-900);
   background: color-mix(in srgb, var(--saffron-700) 80%, transparent);
-  border: 1px solid color-mix(in srgb, var(--saffron-700) 80%, transparent);
+  border: 2px solid color-mix(in srgb, var(--saffron-700) 80%, transparent);
   transition: background 0.3s var(--ease), color 0.3s var(--ease), border-color 0.3s var(--ease);
 }
 .hero-spotlight-btn:hover {
@@ -976,16 +1010,17 @@ section { position: relative; }
   border-color: color-mix(in srgb, var(--saffron-600) 80%, transparent);
 }
 .hero-spotlight-btn-icon {
-  width: 19px;
-  height: 19px;
+  width: 22px;
+  height: 22px;
   flex-shrink: 0;
 }
 /* Same Projects glyph as .nav-link's own icon (Figma node 158:94) —
    reused here rather than re-drawn so the two stay visually
-   identical. */
+   identical. Bigger than the arrow (.hero-spotlight-btn-icon) since
+   it's the button's leading, more prominent glyph. */
 .hero-spotlight-btn-projects-icon {
-  width: 19px;
-  height: 19px;
+  width: 26px;
+  height: 26px;
   flex-shrink: 0;
 }
 /* Mobile-only label swap — desktop keeps "View My Projects" (below via

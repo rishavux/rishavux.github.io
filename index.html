@@ -100,7 +100,18 @@
        any viewport size or scroll position. -->
   <div class="stupa-light" id="stupa-light" aria-hidden="true">
     <div class="stupa-light-glow" id="stupa-light-glow"></div>
+    <!-- Bridges the core's hot white/yellow and the glow's soft amber
+         so center-to-edge reads as one continuous falloff instead of
+         two separate circles — sits between them in size (64px, vs.
+         28/160) and in paint order (after glow, before core). -->
+    <div class="stupa-light-inner" id="stupa-light-inner"></div>
     <div class="stupa-light-core" id="stupa-light-core"></div>
+    <!-- Bloom comes first so near/far paint over it — wider (trapezoid,
+         not a point, at the apex) and more blurred than either, at low
+         opacity, reading as ambient spill around the defined shaft
+         rather than a third hard-edged wedge. See remeasureStupaLight()
+         in script.js for its geometry. -->
+    <div class="stupa-light-beam stupa-light-beam--bloom" id="stupa-light-beam-bloom" aria-hidden="true"></div>
     <!-- Two layers, not one — a near (sharper) wedge that dominates
          close to the glow and a far (heavier blur) wedge that fades
          in and takes over toward the card, cross-faded via mask-image

@@ -47,6 +47,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const t = clamp01((x - edge0) / (edge1 - edge0));
     return t * t * (3 - 2 * t);
   };
+  /* Fast start, gentle stop — unlike smoothstep (symmetric ease-in-out),
+     used where a reveal should decelerate into its resting state rather
+     than easing in and out equally (see the card's clip-path unravel in
+     renderStupaReveal, which otherwise reads as mechanical). */
+  const easeOutCubic = (edge0, edge1, x) => {
+    const t = clamp01((x - edge0) / (edge1 - edge0));
+    return 1 - Math.pow(1 - t, 3);
+  };
   /* Shortest signed angle (radians) from a to b, wrapped to (-π, π] —
      without this, lerping raw atan2() outputs can rotate the long way
      round instead of the short way. */
@@ -92,9 +100,11 @@ document.addEventListener('DOMContentLoaded', () => {
   const navLinkEls = document.querySelectorAll('.nav-link');
   const stupaLight = document.getElementById('stupa-light');
   const stupaLightGlow = document.getElementById('stupa-light-glow');
+  const stupaLightInner = document.getElementById('stupa-light-inner');
   const stupaLightCore = document.getElementById('stupa-light-core');
   const stupaLightBeam = document.getElementById('stupa-light-beam');
   const stupaLightBeamFar = document.getElementById('stupa-light-beam-far');
+  const stupaLightBeamBloom = document.getElementById('stupa-light-beam-bloom');
   const heroSpotlightCard = document.getElementById('hero-spotlight-card');
   const heroSpotlightContent = heroSpotlightCard.querySelector('.hero-spotlight-content');
   const heroSpotlightHighlight = document.getElementById('hero-spotlight-highlight');
@@ -210,6 +220,7 @@ document.addEventListener('DOMContentLoaded', () => {
      proportionate to the much bigger card below, rather than looking
      like a tiny pinprick next to it. Ratio kept roughly the same. */
   const LIGHT_CORE_ORIG = 28;
+  const LIGHT_INNER_ORIG = 64;
   const LIGHT_GLOW_ORIG = 160;
 
   /* Light beam + glass card (Figma node 107:15, "Frame 145") — a light
@@ -277,6 +288,8 @@ document.addEventListener('DOMContentLoaded', () => {
     lightXPx = (STUPA_TOP_COL - windowLeftOrig) * lightScale;
     stupaLightCore.style.width = `${LIGHT_CORE_ORIG * lightScale}px`;
     stupaLightCore.style.height = `${LIGHT_CORE_ORIG * lightScale}px`;
+    stupaLightInner.style.width = `${LIGHT_INNER_ORIG * lightScale}px`;
+    stupaLightInner.style.height = `${LIGHT_INNER_ORIG * lightScale}px`;
     stupaLightGlow.style.width = `${LIGHT_GLOW_ORIG * lightScale}px`;
     stupaLightGlow.style.height = `${LIGHT_GLOW_ORIG * lightScale}px`;
 
@@ -334,7 +347,7 @@ document.addEventListener('DOMContentLoaded', () => {
        core rather than one uniformly-blurred hard-edged shape. */
     [
       { el: stupaLightBeam, blurFactor: 0.05 },
-      { el: stupaLightBeamFar, blurFactor: 0.28 },
+      { el: stupaLightBeamFar, blurFactor: 0.12 },
     ].forEach(({ el, blurFactor }) => {
       el.style.left = '0px';
       el.style.top = `${cardTop}px`;
@@ -354,6 +367,22 @@ document.addEventListener('DOMContentLoaded', () => {
          extending sideways at a fixed height. */
       el.style.transformOrigin = `0% ${apexYPct}%`;
     });
+    /* Bloom shares the near/far box exactly, but its clip-path is a
+       trapezoid instead of a point at the apex — it already has some
+       vertical spread at x=0 (apexYPct ± BLOOM_SPREAD_PCT) rather than
+       tapering from nothing, so it reads as ambient spill widening
+       around the shaft rather than a third, even-wider wedge stacked
+       on top of it. */
+    const BLOOM_SPREAD_PCT = 6;
+    const bloomTopPct = Math.max(0, apexYPct - BLOOM_SPREAD_PCT);
+    const bloomBottomPct = Math.min(100, apexYPct + BLOOM_SPREAD_PCT);
+    stupaLightBeamBloom.style.left = '0px';
+    stupaLightBeamBloom.style.top = `${cardTop}px`;
+    stupaLightBeamBloom.style.width = `${beamW}px`;
+    stupaLightBeamBloom.style.height = `${beamH}px`;
+    stupaLightBeamBloom.style.clipPath = `polygon(0 ${bloomTopPct}%, 0 ${bloomBottomPct}%, 100% 0%, 100% 100%)`;
+    stupaLightBeamBloom.style.filter = `blur(${beamH * 0.22}px)`;
+    stupaLightBeamBloom.style.transformOrigin = `0% ${apexYPct}%`;
   }
 
   /* The chip row AND the About Me / Projects buttons row below it are
@@ -405,9 +434,19 @@ document.addEventListener('DOMContentLoaded', () => {
   function renderStupaReveal(t) {
     stupaRevealP = t;
     if (isMobileViewport()) return;
+    /* Beam window starts at the same 0.25 as before (kept so the light
+       still visibly blooms first — see the earlier note this replaced),
+       but stretched wider (0.25→0.95, was 0.25→0.85) so the reveal
+       itself plays out more slowly instead of rushing through in the
+       same fraction of the click-scroll's fixed real-time duration.
+       Card window likewise widened (0.6→0.95, was 0.55→0.8) — started
+       a touch later since the beam now takes longer to read as "mostly
+       across", and still finishes with a small margin before t=1 (not
+       a fraction to 1.0 itself) so there's no last-frame snap, same
+       reasoning as MORPH_DOCK_AT elsewhere in this file. */
     const lightP = smoothstep(0, 0.4, t);
-    const beamP = smoothstep(0.15, 0.75, t);
-    const cardP = smoothstep(0.55, 0.8, t);
+    const beamP = smoothstep(0.25, 0.95, t);
+    const cardP = easeOutCubic(0.6, 0.95, t);
 
     /* "Opening up" rather than panning in: scale from 0 → 1 (an iris/
        aperture growing open), combined with the opacity fade, so the
@@ -421,8 +460,10 @@ document.addEventListener('DOMContentLoaded', () => {
        stylesheet's transform entirely rather than adding to it. */
     const lightTransform = `translate(-50%, -50%) scale(${lightP})`;
     stupaLightGlow.style.transform = lightTransform;
+    stupaLightInner.style.transform = lightTransform;
     stupaLightCore.style.transform = lightTransform;
     stupaLightGlow.style.opacity = String(lightP);
+    stupaLightInner.style.opacity = String(lightP);
     stupaLightCore.style.opacity = String(lightP);
     /* Beam "opens up" the same way as the light — scale(0→1) anchored
        on its own apex point (transform-origin set once in
@@ -435,6 +476,11 @@ document.addEventListener('DOMContentLoaded', () => {
     stupaLightBeamFar.style.transform = beamTransform;
     stupaLightBeam.style.opacity = String(beamP);
     stupaLightBeamFar.style.opacity = String(beamP);
+    /* Bloom opens in sync with near/far but is capped to a low peak
+       (0.15, vs. their full 0→1) — it's ambient spill, not a third
+       equally-strong wedge. */
+    stupaLightBeamBloom.style.transform = beamTransform;
+    stupaLightBeamBloom.style.opacity = String(beamP * 0.15);
     /* Card unravels left-to-right, starting exactly where the beam
        terminates (the card's left edge) — right-side clip shrinks
        from 100% (nothing visible) to 0% (fully visible) as cardP goes
