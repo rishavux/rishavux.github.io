@@ -402,10 +402,8 @@ section { position: relative; }
   gap: 5px;
   width: 42px;
   height: 42px;
-  border-radius: 50%;
-  border: 1px solid rgba(255, 255, 255, 0.5);
-  background: rgba(21, 21, 21, 0.7);
-  backdrop-filter: blur(12px);
+  border: none;
+  background: transparent;
   cursor: pointer;
 }
 .nav-toggle span {
@@ -804,14 +802,14 @@ section { position: relative; }
   align-items: flex-start;
   gap: 1.5rem;
   margin-top: clamp(20px, 2.6vw, 34px);
-  /* Restores this row's original position ABOVE the buttons row below,
-     since the two swapped places in the actual markup (mobile shows
-     the buttons row first, then this one — see index.html) — desktop's
-     .hero-spotlight-content is a flex column, so `order` re-sorts them
-     back to how they used to read; mobile overrides .hero-spotlight-
-     content to display:block (so its "one flowing sentence" trick
-     works), where `order` has no effect and elements simply follow
-     source order instead, which is exactly what mobile wants. */
+  /* Desktop always wants this row ABOVE the buttons row below,
+     regardless of their order in the actual markup (mobile's own
+     display:block override further down needs the opposite —
+     buttons first, then this row — since `order` has no effect there
+     and elements just follow source order; see index.html). Desktop's
+     .hero-spotlight-content is a flex column, so `order` re-sorts
+     them back to how they're meant to read here irrespective of
+     source order. */
   order: 1;
   /* Width set in px from script.js, matched to the buttons row below
      (which is itself matched to the highlight line's rendered width)
@@ -889,7 +887,7 @@ section { position: relative; }
   --chip-glow: color-mix(in srgb, var(--mineral-blue-300) 55%, transparent);
 }
 .hero-spotlight-chip--green {
-  background: color-mix(in srgb, var(--botanical-green-900) 80%, transparent);
+  background: color-mix(in srgb, var(--botanical-green-900) 90%, transparent);
   /* Darker than the blue/gold chips' strokes on purpose — this is
      the only chip that still pulses, so a darker, richer green
      keeps the glow itself subtle instead of the brightest thing
@@ -939,10 +937,10 @@ section { position: relative; }
   0% { background-position: 130% 0; }
   100% { background-position: -90% 0; }
 }
-/* Same color style as the buttons row below (oxide-red-900 @ 90%,
+/* Same color style as the buttons row below (oxide-red-900 @ 97%,
    #E5BCB3 text/icon). */
 .hero-spotlight-chip--red {
-  background: color-mix(in srgb, var(--oxide-red-900) 90%, transparent);
+  background: color-mix(in srgb, var(--oxide-red-900) 97%, transparent);
   --chip-border: color-mix(in srgb, var(--oxide-red-600) 42%, transparent);
   --chip-glow: color-mix(in srgb, var(--oxide-red-600) 55%, transparent);
 }
@@ -1084,6 +1082,18 @@ section { position: relative; }
     opacity: 1;
     transform: none;
   }
+  /* Opening the Projects overlay forces is-docked onto this card too
+     (see updateHero()'s heroSpotlightCard.classList.add('is-docked')
+     in script.js — it doesn't distinguish "docked from scrolling" from
+     "docked because Projects forced it"), which would otherwise reveal
+     the whole sentence/chips/button behind the panel while it's still
+     sliding in (its 1.1s transform slide, .projects — doesn't cover
+     everything the instant it opens). #projects's ID gives this more
+     specificity than the .is-docked rule above, so it wins regardless
+     of docked state whenever the panel is open. */
+  main:has(#projects.is-open) .hero-spotlight-card {
+    opacity: 0;
+  }
   .hero-spotlight-card.is-docked .hero-spotlight-line {
     opacity: 1;
     transform: none;
@@ -1100,9 +1110,8 @@ section { position: relative; }
     flex-direction: row;
     align-items: flex-start;
     gap: 14px;
-    /* More room below the button than before (was 24px) — a
-       deliberate gap, not a tight follow-on. */
-    margin-top: 44px;
+    /* Gap below the button, now that the chips trail it again. */
+    margin-top: 48px;
     margin-inline: 0;
   }
   /* Scoped to inside the meta row specifically — .hero-spotlight-
@@ -1127,28 +1136,46 @@ section { position: relative; }
     text-align: center;
     gap: clamp(6px, 1.6vw, 12px);
     padding: clamp(14px, 3.73vw, 28px) clamp(10px, 2.67vw, 20px);
-    /* Fifth/sixth beats — a small series right after the button (which
-       finishes at 2.25s delay + 0.6s duration = 2.85s), one after the
-       other rather than both popping in with the card like before. Same
-       fade + rise language as the button itself. */
+    /* Starts at 0.15s — practically alongside the very first word (see
+       .hsl-word above) and the button (see its own transition-delay
+       further down, now 0s) — rather than waiting for any real
+       progress through the sentence. Small stagger behind the button
+       kept so the two still read as one sequenced arrival, not
+       everything popping in in the same instant. Duration stretched
+       out to match the button's own slower pace (was 0.45s) — a same-
+       instant start needs a slow finish to still read as graceful
+       rather than rushed. */
     opacity: 0;
-    transform: translateY(16px);
-    transition: opacity 0.45s var(--ease), transform 0.45s var(--ease);
+    transition: opacity 1.1s var(--ease), transform 1.1s var(--ease);
+    transition-delay: 0.15s;
   }
-  .hero-spotlight-chip--green { transition-delay: 2.8s; }
-  .hero-spotlight-chip--red { transition-delay: 3.05s; }
+  /* Slide in from their own side of the screen instead of rising from
+     below (was a shared translateY(16px)) — mirrored pair reads more
+     deliberately "from the edges" than both repeating the button's own
+     upward motion. */
+  .hero-spotlight-chip--green { transform: translateX(-70px); }
+  .hero-spotlight-chip--red { transform: translateX(70px); }
   .hero-spotlight-card.is-docked .hero-spotlight-chip--green,
   .hero-spotlight-card.is-docked .hero-spotlight-chip--red {
     opacity: 1;
     transform: none;
   }
-  /* Same opacity as the base (desktop) rules — real brand color, not a
-     faint tint. */
+  /* Matches the location (red) chip's own fill opacity below — was
+     90%, reading noticeably lighter next to it. */
   .hero-spotlight-chip--green {
-    background: color-mix(in srgb, var(--botanical-green-900) 80%, transparent);
+    background: color-mix(in srgb, var(--botanical-green-900) 100%, transparent);
+  }
+  /* Shimmer sweep (see the base .hero-spotlight-chip--green::before
+     rule further up) dropped on mobile only — desktop keeps it. */
+  .hero-spotlight-chip--green::before {
+    display: none;
   }
   .hero-spotlight-chip--red {
-    background: color-mix(in srgb, var(--oxide-red-900) 90%, transparent);
+    background: color-mix(in srgb, var(--oxide-red-900) 100%, transparent);
+    /* Static edge glow (--chip-glow, same var the desktop pulse
+       animates) plus a soft dark halo beyond it — gives the chip some
+       contrast/separation against the busy photo behind it. */
+    box-shadow: inset 0 0 24px rgba(0, 0, 0, 0.1), 0 0 16px var(--chip-glow), 0 0 28px rgba(0, 0, 0, 0.3);
   }
   .hero-spotlight-meta .hero-spotlight-chip-icon {
     width: clamp(19px, 5.07vw, 39px);
@@ -1188,13 +1215,17 @@ section { position: relative; }
        line above — each floor is what was tuned at 375px, each vw
        coefficient set to equal that floor exactly at 375px, so they
        keep growing proportionally as the chip's own 60vw width does,
-       rather than staying flat while the box around them grows. */
-    gap: clamp(16px, 4.27vw, 32px);
+       rather than staying flat while the box around them grows.
+       Trimmed down (was 16/32) — icon and title read as too far apart
+       at this chip's now-tighter padding. */
+    gap: clamp(10px, 2.67vw, 20px);
     /* Horizontal cut roughly in half from the original 26/53 — the chip
        is sized to its own (now narrower) content anyway, so it doesn't
        need as much side breathing room as the wide 60vw box this was
-       first tuned for. */
-    padding: clamp(6px, 1.6vw, 12px) clamp(13px, 3.47vw, 27px);
+       first tuned for. Trimmed a little further still (was 6/12
+       vertical, 13/27 horizontal) — read as a touch too roomy at its
+       current content-hugging width. */
+    padding: clamp(5px, 1.33vw, 10px) clamp(11px, 2.93vw, 23px);
     /* No fill — just the border below this rule plus the blur here, so
        it reads as frosted glass over the photo rather than a solid
        tinted pill (same treatment as .hero-spotlight-card's own glass
@@ -1257,7 +1288,7 @@ section { position: relative; }
        matches what was tuned at 375px, coefficient set so the vw term
        already equals that floor exactly at 375px, so it keeps growing
        proportionally instead of plateauing partway to 760px. */
-    font-size: clamp(1.35rem, 5.76vw, 2.74rem);
+    font-size: clamp(1.6rem, 6.83vw, 2.99rem);
   }
   /* Second beat, right after the card starts settling (see
      .hero-spotlight-card above) — word-by-word "unravel", each word
@@ -1291,7 +1322,11 @@ section { position: relative; }
        matches what was tuned at 375px, coefficient set so the vw term
        already equals that floor exactly at 375px, so it keeps growing
        proportionally instead of plateauing partway to 760px. */
-    font-size: clamp(1.35rem, 5.76vw, 2.74rem);
+    font-size: clamp(1.6rem, 6.83vw, 2.99rem);
+    /* Matches .hero-spotlight-line's own text-shadow above — same
+       sentence, same treatment (was missing here, so the highlight
+       read flatter than the lead-in against the photo). */
+    text-shadow: 0 2px 16px rgba(0, 0, 0, 0.55);
   }
   /* Mobile swaps in its own copy of the lead-in (currently the same
      text as desktop's, just wrapped into individual .hsl-word spans —
@@ -1337,33 +1372,49 @@ section { position: relative; }
     opacity: 1;
     transform: scale(1);
   }
-  /* "View My Projects" button, right below the sentence — last beat in
-     the sequence (see its own transition-delay further down for exact
-     timing). Width/margin reset from the base rule (which relies on
-     script.js measuring/setting a JS width that's never applied on
-     mobile, see the isMobileViewport() guards) to a fixed 75vw,
-     left-aligned block instead — .hero-spotlight-btn is flex:1 1 0
-     inside it (the sole child), so the button itself ends up 75vw too,
-     rather than stretching to the content column's own, wider width
-     (viewport minus .hero-spotlight-content's padding-inline), which
-     was reading as too big/nearly edge-to-edge. */
+  /* "View My Projects" button, right below the sentence — first beat
+     in the sequence (see its own transition-delay further down for
+     exact timing), chips follow right after. Width/margin reset from
+     the base rule (which relies on script.js measuring/setting a JS
+     width that's never applied on mobile, see the isMobileViewport()
+     guards) to full-width instead — .hero-spotlight-btn is flex:1 1 0
+     inside it (the sole child), so the button itself spans the same
+     width as the content column (viewport minus .hero-spotlight-
+     content's own padding-inline), with the button's own left/right
+     padding keeping its label off that edge. */
   .hero-spotlight-actions {
-    width: 75vw;
+    width: 100%;
     margin-inline: 0;
-    /* Pushed further down from the sentence (was 20px) — more of a
-       deliberate gap before the CTA than a tight follow-on. */
-    margin-top: 44px;
+    margin-top: 60px;
     opacity: 0;
-    transform: translateY(16px);
-    /* Final beat — starts once the closing period finishes (1.65s +
-       2 * 0.15s punctuation delay + 0.3s duration = 2.25s). Own emergence
-       slowed from 0.35s to 0.6s (was reading as too quick for the last
-       beat of the sequence) — motion (translateY) left as-is. */
-    transition: opacity 0.6s var(--ease) 2.25s, transform 0.6s var(--ease) 2.25s;
+    /* Rises up from off the bottom of the screen instead of the small
+       16px nudge chips/punctuation use elsewhere — reads as its own
+       distinct, more deliberate entrance now that it leads the chips
+       in rather than trailing the whole sentence. */
+    transform: translateY(80px);
+    /* Base (desktop) rule sets pointer-events:auto unconditionally,
+       which is safe there since the card hides itself via clip-path
+       (zero-width, so nothing to hit-test) — mobile hides via opacity
+       alone instead (see .hero-spotlight-card's own mobile rule further
+       up), which does NOT stop clicks. Without this override the button
+       stayed fully clickable while still invisible, pre-dock — a stray
+       tap/scroll touch anywhere in this area (e.g. near the down-arrow,
+       which sits in roughly the same spot before it docks away) could
+       silently trigger openProjects(). */
+    pointer-events: none;
+    /* Starts at 0s — the exact same moment the very first word of the
+       sentence starts its own wipe (see .hsl-word above) — instead of
+       waiting for any part of it to finish. Duration stretched way out
+       (was 0.6s) so a same-instant start still reads as a slow,
+       deliberate rise rather than a rushed pop; 1.3s means it's still
+       gently climbing into place well after the sentence itself is
+       done typing (1.58s). */
+    transition: opacity 1.3s var(--ease) 0s, transform 1.3s var(--ease) 0s;
   }
   .hero-spotlight-card.is-docked .hero-spotlight-actions {
     opacity: 1;
     transform: none;
+    pointer-events: auto;
   }
   /* Collapses the whole reveal above (card → one continuous per-word
      sentence unravel, lead-in through the highlight → punctuation →
@@ -1417,6 +1468,14 @@ section { position: relative; }
     /* Vertical trimmed further still (was 0.28rem) — reads as too
        tall/padded at this button's current size. */
     padding: 0.16rem 1.4rem;
+    /* Fill/border bumped up from the base rule's 80% — more contrast
+       against the photo on mobile specifically (desktop keeps 80%). */
+    background: color-mix(in srgb, var(--saffron-700) 90%, transparent);
+    border-color: color-mix(in srgb, var(--saffron-700) 90%, transparent);
+    /* Soft ambient halo, no color — same idea as the chips' glow above
+       but without a hue, just enough blur to separate the button's
+       edge from the photo behind it. */
+    box-shadow: 0 0 24px rgba(0, 0, 0, 0.3);
   }
   .hero-spotlight-btn-projects-icon,
   .hero-spotlight-btn-icon {
