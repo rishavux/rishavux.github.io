@@ -119,8 +119,8 @@
        directly from script.js instead. -->
   <div class="hero-spotlight-card" id="hero-spotlight-card">
     <div class="hero-spotlight-content">
-      <p class="hero-spotlight-line">I am a creative designer at the intersection of</p>
-      <p class="hero-spotlight-highlight" id="hero-spotlight-highlight">Intelligence, Behavior, &amp; Culture</p>
+      <p class="hero-spotlight-line"><span class="hsl-lead hsl-lead--desktop">I am a</span><span class="hsl-lead hsl-lead--mobile">A</span> creative designer at the intersection of</p>
+      <p class="hero-spotlight-highlight" id="hero-spotlight-highlight"><span class="hl-part hl-part--intelligence">Intelligence,</span> <span class="hl-part hl-part--behavior">Behavior,</span> <span class="hl-part hl-part--culture">&amp; Culture</span></p>
 
       <div class="hero-spotlight-meta" id="hero-spotlight-meta">
         <div class="hero-spotlight-chip hero-spotlight-chip--blue">
@@ -155,6 +155,22 @@
         </a>
       </div>
 
+    </div>
+  </div>
+
+  <!-- Mobile-only stand-in for the role chip above — desktop's copy
+       lives inside #hero-spotlight-meta and only ever appears as part
+       of the docked reveal there (see style.css's mobile block). This
+       one shows immediately, between the name and the down-arrow
+       button, positioned by script.js's remeasureHeroMorph, then fades
+       out once docked so the "usual" docked one (inside the card) can
+       take over. Shares hero-spotlight-chip/--blue for its visual
+       styling (background, padding, icon/text sizing, etc.) but keeps
+       its own position/visibility via .mobile-role-chip. -->
+  <div class="mobile-role-chip hero-spotlight-chip hero-spotlight-chip--blue" id="mobile-role-chip">
+    <img class="hero-spotlight-chip-icon" src="images/role-icon.svg" alt="" aria-hidden="true" />
+    <div class="hero-spotlight-chip-text">
+      <p class="hero-spotlight-chip-line hero-spotlight-chip-line--bold">UI / UX Designer</p>
     </div>
   </div>
 

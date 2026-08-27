@@ -100,6 +100,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const heroSpotlightHighlight = document.getElementById('hero-spotlight-highlight');
   const heroSpotlightMeta = document.getElementById('hero-spotlight-meta');
   const heroSpotlightActions = document.getElementById('hero-spotlight-actions');
+  const mobileRoleChip = document.getElementById('mobile-role-chip');
 
   const rootStyles = getComputedStyle(document.documentElement);
   const DOCK_TOP = parseFloat(rootStyles.getPropertyValue('--dock-top'));
@@ -114,6 +115,13 @@ document.addEventListener('DOMContentLoaded', () => {
      you, instead of sitting frozen behind the content. */
   const BG_PAN_START = 22;
   const BG_PAN_END = 100;
+  /* On phone-width viewports the horizontal crop switches from
+     "center" to "left" (see updateHero below) so the stupa — which
+     sits on the left third of the photo — stays on screen instead of
+     being cropped out by a centered crop on a narrow, tall viewport.
+     Matches the site's existing mobile-nav breakpoint. */
+  const MOBILE_BREAKPOINT_PX = 760;
+  const isMobileViewport = () => window.innerWidth <= MOBILE_BREAKPOINT_PX;
 
   /* The morph (avatar/name travel, nav fade-in, dock) starts the
      instant scrolling does, and plays out over (0, DOCK_AT] of the
@@ -148,9 +156,38 @@ document.addEventListener('DOMContentLoaded', () => {
          resizing down to the final dock size. */
   const DOCK_GAP = 12;
   const DOCK_NAME_FONT_PX = 27;
+  /* Mobile docks the name (and, since it's anchored to the name's own
+     scale, the role chip riding along with it) smaller than desktop's
+     27px — a separate, mobile-only override rather than changing the
+     shared constant above, which desktop's own docked nav also
+     depends on. dockNameFontPx() replaces every direct read of
+     DOCK_NAME_FONT_PX below so both stay in sync automatically. */
+  const MOBILE_DOCK_NAME_FONT_PX = 19;
+  const dockNameFontPx = () => (isMobileViewport() ? MOBILE_DOCK_NAME_FONT_PX : DOCK_NAME_FONT_PX);
   const ARRANGE_PHASE_END = 0.45;
   const HERO_SCROLL_BTN_SIZE = 64; // matches .hero-scroll-btn's width/height
   const HERO_SCROLL_BTN_GAP = 28;
+  /* Gap between the name's own bottom edge and the mobile-only role
+     chip below it (see #mobile-role-chip in index.html), scaled up
+     from 0 (touching, at rest) to this value as travelP goes 0→1 —
+     same idiom as DOCK_GAP/restGapPx for the avatar/name's own arm
+     length above. The chip is otherwise anchored directly to the
+     name's own live position/scale every frame (see updateHero) —
+     "the same element", not a separately tuned animation — so this is
+     the only chip-specific number left to tune. */
+  const MOBILE_ROLE_CHIP_DOCKED_GAP = 2;
+  /* Chip's own natural (unscaled, rest) size — measured once in
+     remeasureHeroMorph, the same "unstyle, measure" trick used for the
+     name/avatar. Needed because the chip is still a wide (60vw at
+     rest) box: a plain CSS `translateX(-50%) scale()` centers/shrinks
+     it around its OWN (unscaled) width, which silently drifts the
+     visual left edge away from whatever `left` is set to once the
+     box is actually meant to be left-aligned instead of centered —
+     the exact "why won't it sit right under the name" bug. Using the
+     avatar/name's own explicit translate(center - scaledHalfSize)
+     technique instead (see updateHero) sidesteps that entirely. */
+  let mobileRoleChipRestW = 0;
+  let mobileRoleChipRestH = 0;
 
   /* Yellow light embedded pixel-for-pixel in hero-bg.jpg (1728x1390,
      cropped from the original 1728x1727), sitting on the stupa's
@@ -215,6 +252,22 @@ document.addEventListener('DOMContentLoaded', () => {
   let cardTopLocal = 0;
 
   function remeasureStupaLight() {
+    /* Mobile drops the stupa-light + glass-card system entirely — every
+       hero element gets plain, manually-authored CSS placement instead
+       (see the mobile block in style.css). Skip all of this viewport-
+       scale/beam/card geometry outright rather than just hiding its
+       result, and clear any inline geometry a wider viewport may have
+       left behind so the manual CSS positioning takes over cleanly. */
+    if (isMobileViewport()) {
+      heroSpotlightCard.style.width = '';
+      heroSpotlightCard.style.left = '';
+      heroSpotlightCard.style.top = '';
+      heroSpotlightCard.style.height = '';
+      heroSpotlightCard.style.clipPath = '';
+      cardTopLocal = 0;
+      return;
+    }
+
     const vw = window.innerWidth;
     const vh = window.innerHeight;
     lightScale = Math.max(vw / IMG_W, vh / IMG_H);
@@ -318,6 +371,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function updateStupaLight(panPct) {
+    if (isMobileViewport()) return;
     const windowTopOrig = (panPct / 100) * lightExcessHOrig;
     const yPx = (STUPA_TOP_ROW - windowTopOrig) * lightScale;
     stupaLight.style.transform = `translate(${lightXPx}px, ${yPx}px)`;
@@ -350,6 +404,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function renderStupaReveal(t) {
     stupaRevealP = t;
+    if (isMobileViewport()) return;
     const lightP = smoothstep(0, 0.4, t);
     const beamP = smoothstep(0.15, 0.75, t);
     const cardP = smoothstep(0.55, 0.8, t);
@@ -459,14 +514,46 @@ document.addEventListener('DOMContentLoaded', () => {
     heroScrollBtn.style.left = `${nameRestX - HERO_SCROLL_BTN_SIZE / 2}px`;
     heroScrollBtn.style.top = `${nameRect.bottom + HERO_SCROLL_BTN_GAP}px`;
 
+    /* Mobile role chip's REST position — centered under the name,
+       touching (its live position during the dock transition is
+       anchored directly to the name's own transform every frame in
+       updateHero instead, see the isMobileViewport() branch there).
+       Measures the chip's own natural size first (clearing any
+       transform so the measurement isn't skewed by a stale scale),
+       same "unstyle, measure, restyle" idea as the avatar/name above,
+       then places it and pushes the down-arrow button down to clear
+       whatever height it actually renders at. */
+    if (isMobileViewport()) {
+      mobileRoleChip.style.transform = 'none';
+      const chipRect = mobileRoleChip.getBoundingClientRect();
+      mobileRoleChipRestW = chipRect.width;
+      mobileRoleChipRestH = chipRect.height;
+      mobileRoleChip.style.transform = `translate(${nameRestX - mobileRoleChipRestW / 2}px, ${nameRect.bottom}px)`;
+      const chipBottom = nameRect.bottom + mobileRoleChipRestH;
+      heroScrollBtn.style.top = `${chipBottom + HERO_SCROLL_BTN_GAP}px`;
+    }
+
+    /* On mobile the name now has the role chip docked directly beneath
+       it (see the isMobileViewport() branch in updateHero), so the
+       docked pair reads as a two-line block (name, then chip) next to
+       the avatar rather than one single-line label — the avatar's own
+       dock center shifts down by this much so it stays vertically
+       centered on that whole block instead of sitting high, centered
+       on just the name's own line. Desktop has no chip below the name,
+       so it isn't shifted. */
+    const MOBILE_AVATAR_DOCK_Y_SHIFT = 16;
     const avatarDockCenterX = DOCK_SIDE + AVATAR_DOCK / 2;
-    const avatarDockCenterY = DOCK_TOP + AVATAR_DOCK / 2;
-    /* Text width scales roughly with font-size for the same string, so
-       this estimates the docked name's width well enough to place the
-       hub/arm — exact to the pixel isn't needed. */
-    const nameDockW = nameRestW * (DOCK_NAME_FONT_PX / nameRestFontPx);
+    const avatarDockCenterY = DOCK_TOP + AVATAR_DOCK / 2 + (isMobileViewport() ? MOBILE_AVATAR_DOCK_Y_SHIFT : 0);
+    /* Text width/height scale roughly with font-size for the same
+       string, so this estimates the docked name's box well enough to
+       place the hub/arm (width) and the mobile role chip below it
+       (height) — exact to the pixel isn't needed either way. */
+    const nameDockW = nameRestW * (dockNameFontPx() / nameRestFontPx);
     const nameDockCenterX = DOCK_SIDE + AVATAR_DOCK + DOCK_GAP + nameDockW / 2;
-    const nameDockCenterY = avatarDockCenterY;
+    /* Name itself stays anchored to the UNshifted row position — only
+       the avatar moves down to meet it partway relative to the taller
+       (name + chip) block; see the comment above. */
+    const nameDockCenterY = DOCK_TOP + AVATAR_DOCK / 2;
 
     dockHubX = (avatarDockCenterX + nameDockCenterX) / 2;
     dockHubY = (avatarDockCenterY + nameDockCenterY) / 2;
@@ -544,10 +631,15 @@ document.addEventListener('DOMContentLoaded', () => {
       heroMorph.classList.add('is-docked');
       heroNav.classList.add('is-docked');
       heroNavBar.classList.add('is-docked');
+      /* Mobile hero copy keys its own slide-in reveal off this same
+         flag (see the mobile block in style.css) — no-op on wider
+         viewports, where the class just sits unused on this element. */
+      heroSpotlightCard.classList.add('is-docked');
     } else if (morphP < 1 && isDocked) {
       heroMorph.classList.remove('is-docked');
       heroNav.classList.remove('is-docked');
       heroNavBar.classList.remove('is-docked');
+      heroSpotlightCard.classList.remove('is-docked');
     }
 
     /* The scroll button is only relevant before the transition starts
@@ -565,7 +657,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const travelP = smoothstep(ARRANGE_PHASE_END, 1, morphP);
 
     const avatarScale = 1 - (1 - TARGET_SCALE) * sizeP;
-    const nameScale = 1 - (1 - DOCK_NAME_FONT_PX / nameRestFontPx) * sizeP;
+    const nameScale = 1 - (1 - dockNameFontPx() / nameRestFontPx) * sizeP;
 
     /* Reserves room for .projects-nav-back-btn (same width as the
        docked avatar, plus the same gap the avatar/name themselves
@@ -575,6 +667,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const navBackShift = projectsOpen ? (AVATAR_DOCK + DOCK_GAP) * travelP : 0;
     const hubX = restHubX + (dockHubX - restHubX) * travelP + navBackShift;
     const hubY = restHubY + (dockHubY - restHubY) * travelP;
+
     const angle = restAngle + angleDelta * rotateP;
 
     /* Precise spacing arc: halfLen isn't interpolated between two
@@ -604,6 +697,39 @@ document.addEventListener('DOMContentLoaded', () => {
     const nameCy = hubY - vecY;
     heroMorphName.style.transform =
       `translate(${nameCx - (nameRestW * nameScale) / 2}px, ${nameCy - (nameRestH * nameScale) / 2}px) scale(${nameScale})`;
+
+    /* Mobile role chip anchored directly to the name's own live
+       transform — not a separately tuned animation, but the same scale
+       (nameScale) and a position pinned to the name's own current
+       bottom edge (nameCy + nameHalfH, both already scaled), so it
+       moves, shrinks, and docks exactly as the name does, as if it
+       were physically attached to it.
+       Positioned with the SAME explicit translate(center - scaledHalf-
+       Size) technique as the avatar/name above (see avatarCx/nameCx),
+       not a CSS translateX(%)/left combo — that earlier approach
+       centered/shrank the chip's still-wide (60vw) rest-state box
+       around ITS OWN unscaled width every frame, which silently
+       dragged the visual left edge away from the name's real left
+       edge as it scaled down, instead of landing flush under it.
+       Horizontal target blends from the name's own center (rest) to a
+       center point that puts the CHIP's (measured, scaled) left edge
+       exactly on the name's left edge (docked); vertical target is the
+       chip's top edge sitting at the name's bottom edge plus a gap
+       that opens from 0 (touching, at rest) to MOBILE_ROLE_CHIP_DOCKED_GAP
+       once docked — same idiom as gapPx above for the avatar/name
+       arm's own spacing. */
+    if (isMobileViewport()) {
+      const chipGapPx = MOBILE_ROLE_CHIP_DOCKED_GAP * travelP;
+      const chipHalfWScaled = (mobileRoleChipRestW * nameScale) / 2;
+      const chipHalfHScaled = (mobileRoleChipRestH * nameScale) / 2;
+      const nameLeftEdge = nameCx - nameHalfW;
+      const chipCenterXAtDock = nameLeftEdge + chipHalfWScaled;
+      const chipCenterX = nameCx + (chipCenterXAtDock - nameCx) * travelP;
+      const chipTopEdge = nameCy + nameHalfH + chipGapPx;
+      const chipCenterY = chipTopEdge + chipHalfHScaled;
+      mobileRoleChip.style.transform =
+        `translate(${chipCenterX - chipHalfWScaled}px, ${chipCenterY - chipHalfHScaled}px) scale(${nameScale})`;
+    }
 
     /* The glass bar + mobile toggle fade AND slide in across the same
        travelP (avatar/name's actual migration to the corner) instead
@@ -645,7 +771,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const panPct = prefersReducedMotion ? BG_PAN_START : BG_PAN_START + p * (BG_PAN_END - BG_PAN_START);
     if (!prefersReducedMotion) {
-      heroBgImg.style.objectPosition = `center ${panPct}%`;
+      const bgAlignH = isMobileViewport() ? 'left' : 'center';
+      heroBgImg.style.objectPosition = `${bgAlignH} ${panPct}%`;
     }
     updateStupaLight(panPct);
   }

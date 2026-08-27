@@ -522,9 +522,55 @@ section { position: relative; }
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(10px); }
 }
+/* Mobile-only — desktop keeps the role chip inside #hero-spotlight-meta
+   (see the mobile block further down for where this actually shows). */
+.mobile-role-chip { display: none; }
 
 @media (max-width: 760px) {
-  .hero-morph-name { font-size: clamp(1.6rem, 6vw, 2.4rem); }
+  /* Bigger docked avatar on mobile than desktop's 66px — script.js
+     reads this same variable (AVATAR_DOCK) via getComputedStyle at
+     load, so the dock math (nav row height, chip's docked position,
+     etc.) automatically adapts to whatever's active for the current
+     viewport. */
+  :root {
+    /* Rest-state avatar (the big circle before docking) reduced 25%
+       from the shared 190px default — mobile-only, desktop keeps
+       190px. */
+    --avatar-base: 128px;
+    /* Docked avatar also reduced 25% from the previous 82px (its own
+       target size, independent of --avatar-base — see TARGET_SCALE in
+       script.js — so it needed its own separate reduction to actually
+       shrink once docked). */
+    --avatar-dock: 56px;
+    /* Nudges the whole docked avatar/name row up a touch, making room
+       right below it for the mobile role chip — both avatar and name
+       move together (they're always symmetric around one shared hub,
+       see script.js), so this is what "pushes the name up" rather than
+       moving the name on its own. */
+    --dock-top: 8px;
+  }
+  /* Floor tuned at 375px width (2.2rem); the vw coefficient is set so
+     that term already equals the floor exactly AT 375px (rather than
+     the floor doing the work up to some wider point), so growth from
+     here is continuous/proportional the rest of the way to 760px,
+     where it reaches roughly double the 375px size, matching how a
+     pure vw-based box (like the role chip's own 60vw width) scales. */
+  /* Floor reduced 4px from the previous 2.2rem (35.2px) → 1.95rem
+     (31.2px); coefficient/ceiling recomputed with the same fluid-from-
+     375px idiom. */
+  .hero-morph-name { font-size: clamp(1.75rem, 7.47vw, 3.55rem); }
+  /* Left-crop instead of center-crop — the stupa sits on the left
+     third of the photo, so a centered crop on a narrow, tall viewport
+     pushes it out of frame. Matches the horizontal alignment
+     script.js applies at runtime (see BG_PAN_START/updateHero); this
+     copy only matters with JS disabled or prefers-reduced-motion. */
+  .hero-bg-img { object-position: left 22%; }
+  /* Glass band behind the docked avatar/name/nav (purely decorative —
+     #hero-nav itself, with the actual nav toggle/links, is separate
+     and stays) — dropped for mobile for now along with the rest of
+     the glass-panel treatment (see the .hero-spotlight-card mobile
+     override further down, after its base rule). */
+  .hero-nav-bar { display: none; }
 }
 
 /* Bright yellow light embedded in the stupa's spire tip in
@@ -685,6 +731,11 @@ section { position: relative; }
   transform: translateY(14px);
   transition: opacity 1.2s var(--ease), transform 1.2s var(--ease);
 }
+/* Mobile drops the "I am" lead-in (see the mobile override below,
+   which swaps which of these two shows) — desktop's copy is
+   unaffected since .hsl-lead--desktop stays the one visible by
+   default. */
+.hsl-lead--mobile { display: none; }
 .hero-spotlight-highlight {
   font-family: 'Balthazar', var(--font-display);
   font-weight: 400;
@@ -917,6 +968,230 @@ section { position: relative; }
   width: 19px;
   height: 19px;
   flex-shrink: 0;
+}
+
+/* Mobile hero copy — the frosted glass card + stupa-light reveal is
+   shelved for now (see the isMobileViewport() guards in script.js
+   that stop touching this element's geometry/clip-path/opacity on
+   this viewport), starting over with just the opening line, plain and
+   always visible, while the rest of the mobile hero gets designed
+   piece by piece. Declared here, after every .hero-spotlight-* base
+   rule above, so it actually wins the cascade against them — a copy
+   of this block living up with the rest of the page's 760px overrides
+   was silently losing to these later, unconditional base rules
+   (equal specificity, later source order wins) despite matching the
+   media query; that's why nothing was showing up on mobile before. */
+@media (max-width: 760px) {
+  .stupa-light { display: none; }
+  .hero-spotlight-card {
+    position: fixed;
+    left: 0;
+    right: 0;
+    /* Plain, hand-set value — no JS measures or positions this any
+       more (see remeasureStupaLight's isMobileViewport() branch in
+       script.js). Sits just below the docked avatar/name/nav row
+       (--dock-top + --avatar-dock ≈ 86px) — adjust directly to move
+       it. */
+    top: 145px;
+    width: auto;
+    height: auto;
+    background: none;
+    border: none;
+    box-shadow: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    clip-path: none;
+    /* Hidden off to the left until the avatar/name/nav actually docks
+       (.is-docked, toggled alongside them in script.js's updateHero) —
+       then slides + fades in from the left edge of the screen. The
+       0.3s delay lets the role chip (script.js's updateHero, driven
+       continuously off the same morph progress) finish landing under
+       the nav first, so the sentence visibly follows it rather than
+       arriving at the same instant. */
+    opacity: 0;
+    transform: translateX(-100%);
+    transition: opacity 0.6s var(--ease) 0.3s, transform 0.6s var(--ease) 0.3s;
+  }
+  .hero-spotlight-card.is-docked {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  /* The role chip now lives entirely in #mobile-role-chip (see its own
+     rule further down) — always visible, position/scale/opacity driven
+     continuously by script.js's updateHero() rather than appearing
+     separately here once docked. */
+  .hero-spotlight-meta,
+  .hero-spotlight-actions {
+    display: none;
+  }
+  /* Pure visual/sizing — shared with #mobile-role-chip, which carries
+     this same class for its background/padding/layout (see its own
+     rule further down for the position/opacity/scale it actually
+     animates). */
+  .hero-spotlight-chip--blue {
+    flex: 0 0 auto;
+    /* Dropped the fixed 60vw width — sized to its own content instead,
+       icon and "UI / UX Designer" sitting on one line. */
+    width: auto;
+    white-space: nowrap;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    /* Fluid from 375px, same idiom as .hero-morph-name/.hero-spotlight-
+       line above — each floor is what was tuned at 375px, each vw
+       coefficient set to equal that floor exactly at 375px, so they
+       keep growing proportionally as the chip's own 60vw width does,
+       rather than staying flat while the box around them grows. */
+    gap: clamp(16px, 4.27vw, 32px);
+    padding: clamp(6px, 1.6vw, 12px) clamp(26px, 6.93vw, 53px);
+    /* Was 80% (the base rule) — much more transparent here so the
+       chip reads as a faint tint over the photo instead of a solid
+       card. */
+    background: color-mix(in srgb, var(--mineral-blue-900) 5%, transparent);
+  }
+  /* "My work spans" dropped — just the bold value now ("UI / UX
+     Designer"). :not() keeps this scoped to the plain label line
+     without touching the bold one, which shares the same base class. */
+  .hero-spotlight-chip--blue .hero-spotlight-chip-line:not(.hero-spotlight-chip-line--bold) {
+    display: none;
+  }
+  /* Reduced from 28px, fluid from 375px like everything else above —
+     letter-spacing stays in em, so it already scales with the
+     font-size term automatically. */
+  .hero-spotlight-chip--blue .hero-spotlight-chip-icon {
+    width: clamp(19px, 5.07vw, 39px);
+    height: clamp(19px, 5.07vw, 39px);
+  }
+  .hero-spotlight-chip--blue .hero-spotlight-chip-line--bold {
+    /* Reduced from 1.75rem (28px) to match the icon. */
+    font-size: clamp(1.19rem, 5.07vw, 2.41rem);
+    letter-spacing: 0.04em;
+  }
+  /* One flowing sentence, not two stacked blocks — display:block here
+     (instead of the base rule's flex column) lets the line and
+     highlight below, both switched to display:inline, sit in the same
+     text flow and wrap together naturally. */
+  .hero-spotlight-content {
+    display: block;
+    text-align: left;
+    /* Set here, not on the two inline children, so it applies evenly
+       across the whole flowing/wrapped sentence (letter-spacing
+       inherits; line-height on inline children only affects their own
+       line-box contribution, not the wrap spacing as a whole). */
+    letter-spacing: 0.02em;
+    line-height: 1.85;
+  }
+  .hero-spotlight-line,
+  .hero-spotlight-highlight {
+    display: inline;
+  }
+  .hero-spotlight-line {
+    opacity: 1;
+    transform: none;
+    transition: none;
+    white-space: normal;
+    color: var(--surface-50);
+    text-shadow: 0 2px 16px rgba(0, 0, 0, 0.55);
+    font-family: 'Balthazar', var(--font-display);
+    font-weight: 400;
+    /* Same fluid-from-375px idiom as .hero-morph-name above — floor
+       matches what was tuned at 375px, coefficient set so the vw term
+       already equals that floor exactly at 375px, so it keeps growing
+       proportionally instead of plateauing partway to 760px. */
+    font-size: clamp(1.35rem, 5.76vw, 2.74rem);
+  }
+  /* Highlight now reads as part of the same sentence, so it matches
+     the line's own font (Balthazar) instead of its usual bigger
+     display serif treatment (still shared with desktop via the base
+     rule above). */
+  .hero-spotlight-highlight {
+    font-family: 'Balthazar', var(--font-display);
+    font-weight: 400;
+    /* Same fluid-from-375px idiom as .hero-morph-name above — floor
+       matches what was tuned at 375px, coefficient set so the vw term
+       already equals that floor exactly at 375px, so it keeps growing
+       proportionally instead of plateauing partway to 760px. */
+    font-size: clamp(1.35rem, 5.76vw, 2.74rem);
+  }
+  /* Mobile drops the "I am" lead-in — "A creative designer..." instead
+     of "I am a creative designer...". Desktop keeps the original. */
+  .hsl-lead--desktop { display: none; }
+  .hsl-lead--mobile { display: inline; }
+  /* The parent <p> just becomes a plain wrapper on mobile — each word
+     below animates in on its own instead of the whole line fading in
+     as one block (which is what the base .hero-spotlight-highlight
+     rule, still shared with desktop, does via .is-revealed — that
+     class never gets added on mobile, see script.js's
+     isMobileViewport() guards, so it has to be neutralized here). */
+  .hero-spotlight-highlight {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+  .hl-part {
+    display: inline-block;
+    opacity: 0;
+    transition: opacity 0.6s var(--ease), transform 0.6s var(--ease);
+  }
+  /* One at a time, not all together: the opening line slides/fades in
+     first (.hero-spotlight-card's own 0.6s transition, itself delayed
+     0.3s so the role chip lands under the nav first), THEN
+     "Intelligence" from the left, THEN "Behavior" from the right, THEN
+     "& Culture" up from below — each delayed to start only once the
+     previous one has fully finished (0.6s duration each, delays
+     stepped by 0.6s on top of the card's own 0.3s head start), all
+     still gated by the same .is-docked flag the card itself uses. All
+     three now flow inline as part of the one sentence (see
+     .hero-spotlight-content above) rather than each forcing its own
+     line. */
+  .hl-part--intelligence { transform: translateX(-60px); transition-delay: 0.9s; }
+  .hl-part--behavior { transform: translateX(60px); transition-delay: 1.5s; }
+  .hl-part--culture {
+    transform: translateY(40px);
+    transition-delay: 2.1s;
+  }
+  .hero-spotlight-card.is-docked .hl-part {
+    opacity: 1;
+    transform: none;
+  }
+
+  /* Shown immediately, right under the name at rest, anchored to and
+     docking exactly with it thereafter — visible the whole time, never
+     gated behind docking the way the rest of the mobile hero copy is.
+     Positioned entirely via `transform: translate(...) scale(...)`,
+     set continuously every frame by script.js's updateHero() (and
+     once, initially, by remeasureHeroMorph) — same convention as the
+     avatar/name, which is also just left:0/top:0 plus a live
+     transform, not left/top themselves. */
+  .mobile-role-chip {
+    display: flex;
+    position: fixed;
+    z-index: 210;
+    left: 0;
+    top: 0;
+    /* Same reasoning as .hero-avatar/.hero-morph-name (see style.css)
+       — the translate(center - scaledHalfSize) scale(s) math in
+       updateHero() only lands the box exactly where intended if
+       scaling happens around its own top-left corner. Left at the
+       CSS default (50% 50%, center) the box would scale around its
+       middle instead, throwing off the computed offset by more as it
+       shrinks — a real, separate bug from the shared class's own
+       width/padding. */
+    transform-origin: 0 0;
+    /* Same-value fallback so there's no single-frame flash of
+       invisible content (the shared .hero-spotlight-chip base rule
+       defaults to opacity:0) before the first frame runs. */
+    opacity: 1;
+    /* The shared, unconditional .hero-spotlight-chip base rule (this
+       element's other class) carries its own opacity/transform
+       transition, meant for the desktop chips' is-revealed fade-in —
+       left in place, this element would smoothly animate in from that
+       rule's opacity:0 starting point on first paint instead of just
+       being there already. Cancelled here since every property this
+       element actually changes is driven per-frame by JS instead. */
+    transition: none;
+  }
 }
 
 /* ═══════════════════════════════════════════════════════════
