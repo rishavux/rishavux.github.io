@@ -548,6 +548,18 @@ section { position: relative; }
        see script.js), so this is what "pushes the name up" rather than
        moving the name on its own. */
     --dock-top: 8px;
+    /* Overrides the base :root's --dock-center-y — the avatar/name/chip
+       cluster's REAL vertical center on mobile is shifted down an extra
+       16px from plain (--dock-top + --avatar-dock/2) by
+       MOBILE_AVATAR_DOCK_Y_SHIFT in script.js (updateHero), to center on
+       the taller two-line name+chip block instead of just the name's
+       own line. --dock-center-y itself is plain CSS with no way to read
+       that JS constant, so it has to be kept in sync here by hand — if
+       MOBILE_AVATAR_DOCK_Y_SHIFT ever changes, change this 16px too.
+       Without this, .hero-nav (the hamburger) and .projects-nav-back-btn
+       — both centered purely on --dock-center-y — sit 16px above where
+       the avatar/name row actually docks instead of sharing its row. */
+    --dock-center-y: calc(var(--dock-top) + var(--avatar-dock) / 2 + 16px);
   }
   /* Floor tuned at 375px width (2.2rem); the vw coefficient is set so
      that term already equals the floor exactly AT 375px (rather than
@@ -1059,29 +1071,38 @@ section { position: relative; }
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
     clip-path: none;
-    /* Appears instantly with docking — not part of the animated
-       sequence any more (only the highlight words and the button
-       still animate, see further down), so there's nothing here to
-       wait on. */
+    /* First beat of the reveal sequence — the container settling into
+       place, subtly (small lift, not a slide), just ahead of the
+       word-by-word sentence unravel that follows it (see .hsl-word
+       below) so the whole thing reads as one continuous reveal instead
+       of a snap followed by decoration. */
     opacity: 0;
-    transform: none;
-    transition: none;
+    transform: translateY(10px);
+    transition: opacity 0.4s var(--ease), transform 0.4s var(--ease);
   }
   .hero-spotlight-card.is-docked {
     opacity: 1;
-    transform: translateX(0);
+    transform: none;
+  }
+  .hero-spotlight-card.is-docked .hero-spotlight-line {
+    opacity: 1;
+    transform: none;
   }
   /* Blue ("UI / UX Designer") now lives entirely in #mobile-role-chip
      (see its own rule further down) — hidden here so it doesn't show
-     twice. Green ("Currently looking for") and red ("I am located
-     in") show here instead, stacked below the button as the last two
-     beats in the sequence. */
+     twice. Green ("Currently looking for") and red ("I am located in")
+     show here instead, below the button as the last two beats in the
+     sequence — side by side (row, not column), same orientation as
+     desktop's chip row (its base rule doesn't set flex-direction at
+     all, i.e. plain row default; see .hero-spotlight-meta further up). */
   .hero-spotlight-meta {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     align-items: flex-start;
     gap: 14px;
-    margin-top: 24px;
+    /* More room below the button than before (was 24px) — a
+       deliberate gap, not a tight follow-on. */
+    margin-top: 44px;
     margin-inline: 0;
   }
   /* Scoped to inside the meta row specifically — .hero-spotlight-
@@ -1091,23 +1112,35 @@ section { position: relative; }
   #hero-spotlight-meta .hero-spotlight-chip--blue {
     display: none;
   }
-  /* Same row layout / glassy-tint treatment as the role chip got
-     earlier, fluid from 375px like everything else. */
+  /* Column, centered — same orientation as desktop's own .hero-
+     spotlight-chip base rule (icon stacked above its text, not beside
+     it), rather than the wide horizontal pill this used to be. flex:1 1
+     0 (was 0 0 auto) so the two sit as equal-width side-by-side cards
+     like desktop's row, instead of each hugging its own content width.
+     Padding rebalanced for a squarish card instead of a wide pill;
+     gap (icon-to-text) cut down to a vertical-stack proportion. */
   .hero-spotlight-chip--green,
   .hero-spotlight-chip--red {
-    flex: 0 0 auto;
-    width: auto;
-    flex-direction: row;
+    flex: 1 1 0;
+    flex-direction: column;
     align-items: center;
-    gap: clamp(10px, 2.67vw, 20px);
-    padding: clamp(6px, 1.6vw, 12px) clamp(16px, 4.27vw, 32px);
-    /* No longer part of the animated sequence — the parent card's own
-       opacity (instant now, see .hero-spotlight-card above) already
-       gates whether these are visible at all, same as how
-       .hero-spotlight-line stays permanently opacity:1 itself. */
+    text-align: center;
+    gap: clamp(6px, 1.6vw, 12px);
+    padding: clamp(14px, 3.73vw, 28px) clamp(10px, 2.67vw, 20px);
+    /* Fifth/sixth beats — a small series right after the button (which
+       finishes at 2.25s delay + 0.6s duration = 2.85s), one after the
+       other rather than both popping in with the card like before. Same
+       fade + rise language as the button itself. */
+    opacity: 0;
+    transform: translateY(16px);
+    transition: opacity 0.45s var(--ease), transform 0.45s var(--ease);
+  }
+  .hero-spotlight-chip--green { transition-delay: 2.8s; }
+  .hero-spotlight-chip--red { transition-delay: 3.05s; }
+  .hero-spotlight-card.is-docked .hero-spotlight-chip--green,
+  .hero-spotlight-card.is-docked .hero-spotlight-chip--red {
     opacity: 1;
     transform: none;
-    transition: none;
   }
   /* Same opacity as the base (desktop) rules — real brand color, not a
      faint tint. */
@@ -1117,12 +1150,22 @@ section { position: relative; }
   .hero-spotlight-chip--red {
     background: color-mix(in srgb, var(--oxide-red-900) 90%, transparent);
   }
-  .hero-spotlight-meta .hero-spotlight-chip-line:not(.hero-spotlight-chip-line--bold) {
-    display: none;
-  }
   .hero-spotlight-meta .hero-spotlight-chip-icon {
     width: clamp(19px, 5.07vw, 39px);
     height: clamp(19px, 5.07vw, 39px);
+  }
+  /* Was display:none (bold value only, e.g. just "Full-Time Roles") —
+     now shown, so it needs its own fluid-from-375px size instead of the
+     base rule's small desktop-caption clamp (0.75rem-0.92rem), which
+     would read as illegibly tiny next to the much bigger bold line and
+     icon here. Sized down further from an earlier pass (0.85rem-1.72rem)
+     — at that size "Currently looking for" (the longer of the two
+     labels) wrapped to two lines within the now-equal-width (flex:1 1 0)
+     card while "I am located in" stayed on one, so the green and red
+     cards ended up different heights. Small enough for both labels to
+     stay on one line at this column width, so the two cards match. */
+  .hero-spotlight-meta .hero-spotlight-chip-line:not(.hero-spotlight-chip-line--bold) {
+    font-size: clamp(0.62rem, 2.65vw, 1.26rem);
   }
   .hero-spotlight-meta .hero-spotlight-chip-line--bold {
     font-size: clamp(1.19rem, 5.07vw, 2.41rem);
@@ -1147,10 +1190,18 @@ section { position: relative; }
        keep growing proportionally as the chip's own 60vw width does,
        rather than staying flat while the box around them grows. */
     gap: clamp(16px, 4.27vw, 32px);
-    padding: clamp(6px, 1.6vw, 12px) clamp(26px, 6.93vw, 53px);
-    /* Same 80% opacity as the base (desktop) rule — keeps the chip's
-       actual brand color, not a faint tint. */
-    background: color-mix(in srgb, var(--mineral-blue-900) 80%, transparent);
+    /* Horizontal cut roughly in half from the original 26/53 — the chip
+       is sized to its own (now narrower) content anyway, so it doesn't
+       need as much side breathing room as the wide 60vw box this was
+       first tuned for. */
+    padding: clamp(6px, 1.6vw, 12px) clamp(13px, 3.47vw, 27px);
+    /* No fill — just the border below this rule plus the blur here, so
+       it reads as frosted glass over the photo rather than a solid
+       tinted pill (same treatment as .hero-spotlight-card's own glass
+       card). */
+    background: transparent;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
   }
   /* "My work spans" dropped — just the bold value now ("UI / UX
      Designer"). :not() keeps this scoped to the plain label line
@@ -1177,6 +1228,10 @@ section { position: relative; }
   .hero-spotlight-content {
     display: block;
     text-align: left;
+    /* A bit more room above the sentence than the base rule's own
+       padding-top (clamp(18px, 2.6vw, 36px)) — fluid-from-375 idiom
+       like everything else on mobile. */
+    padding-top: clamp(28px, 7.47vw, 57px);
     /* Set here, not on the two inline children, so it applies evenly
        across the whole flowing/wrapped sentence (letter-spacing
        inherits; line-height on inline children only affects their own
@@ -1189,9 +1244,10 @@ section { position: relative; }
     display: inline;
   }
   .hero-spotlight-line {
-    opacity: 1;
-    transform: none;
-    transition: none;
+    /* Plain wrapper now — no opacity/transform of its own. Each .hsl-word
+       inside it (see below) unravels individually instead of the whole
+       line fading in as one block, same reasoning as .hero-spotlight-
+       highlight's own "parent becomes a plain wrapper" note just below. */
     white-space: normal;
     color: var(--surface-50);
     text-shadow: 0 2px 16px rgba(0, 0, 0, 0.55);
@@ -1202,6 +1258,27 @@ section { position: relative; }
        already equals that floor exactly at 375px, so it keeps growing
        proportionally instead of plateauing partway to 760px. */
     font-size: clamp(1.35rem, 5.76vw, 2.74rem);
+  }
+  /* Second beat, right after the card starts settling (see
+     .hero-spotlight-card above) — word-by-word "unravel", each word
+     wiping open left-to-right via clip-path (the same inset() wipe
+     .hero-spotlight-card's own desktop reveal uses for its glass card),
+     rather than a hard per-character typewriter cut, so it reads as
+     being typed but smoother. Spans the WHOLE sentence, not just this
+     line — --i (set inline per word in index.html) runs 0 through 12
+     continuously across both this <p> and .hero-spotlight-highlight
+     below, so "Intelligence"/"Behavior"/"&"/"Culture" continue the same
+     cascade instead of animating differently. A custom property instead
+     of 13 separate classes, since every word needs the exact same rule,
+     just offset. */
+  .hsl-word {
+    display: inline-block;
+    clip-path: inset(0 100% 0 0);
+    transition: clip-path 0.5s var(--ease);
+    transition-delay: calc(var(--i, 0) * 0.09s);
+  }
+  .hero-spotlight-card.is-docked .hsl-word {
+    clip-path: inset(0 0% 0 0);
   }
   /* Highlight now reads as part of the same sentence, so it matches
      the line's own font (Balthazar) instead of its usual bigger
@@ -1216,8 +1293,11 @@ section { position: relative; }
        proportionally instead of plateauing partway to 760px. */
     font-size: clamp(1.35rem, 5.76vw, 2.74rem);
   }
-  /* Mobile drops the "I am" lead-in — "A creative designer..." instead
-     of "I am a creative designer...". Desktop keeps the original. */
+  /* Mobile swaps in its own copy of the lead-in (currently the same
+     text as desktop's, just wrapped into individual .hsl-word spans —
+     see .hero-spotlight-line above) rather than sharing desktop's
+     plain-text span directly, so per-word unravel styling never has to
+     touch desktop's markup. */
   .hsl-lead--desktop { display: none; }
   .hsl-lead--mobile { display: inline; }
   /* The parent <p> just becomes a plain wrapper on mobile — each word
@@ -1231,75 +1311,112 @@ section { position: relative; }
     transform: none;
     transition: none;
   }
-  .hl-part {
+  /* Third beat — the highlight's own words ("Intelligence", "Behavior",
+     "&", "Culture", --i 9 through 12) are just more .hsl-word spans (see
+     the rule above) continuing the exact same unravel/stagger as the
+     lead sentence — no separate rule needed here, they're not a
+     distinct beat any more, just the sentence's own cascade continuing
+     through the highlight. */
+  /* Fourth beat — the two commas and the closing period (.hsl-punct)
+     wait for EVERY .hsl-word above to finish (last word is --i:12,
+     delay 12 * 0.09s = 1.08s, + 0.5s duration = finishes 1.58s) before
+     coming in as their own beat, rather than being glued to whichever
+     word precedes them. A quick "stamp" scale-in, not a slide (reads
+     better for punctuation than the words' own directional motion),
+     each 0.15s after the previous — comma, comma, period — so they
+     read as one small flourish closing out the sentence once it's
+     fully written, not three separate events. */
+  .hsl-punct {
     display: inline-block;
     opacity: 0;
-    transition: opacity 0.35s var(--ease), transform 0.35s var(--ease);
+    transform: scale(0.3);
+    transition: opacity 0.3s var(--ease), transform 0.3s var(--ease);
+    transition-delay: calc(1.65s + var(--p, 0) * 0.15s);
   }
-  /* The only other thing still animated besides the button — quicker
-     now (0.35s each instead of 0.6s, stepped by 0.3s instead of 0.6s)
-     since the rest of the sequence (sentence, period, chips) was
-     making docking feel slow: "Intelligence" from the left, THEN
-     "Behavior" from the right, THEN "& Culture" up from below, each
-     starting before the previous one has fully finished (a bit of
-     overlap keeps it feeling snappy rather than a stricter relay). */
-  .hl-part--intelligence { transform: translateX(-60px); transition-delay: 0s; }
-  .hl-part--behavior { transform: translateX(60px); transition-delay: 0.3s; }
-  .hl-part--culture {
-    transform: translateY(40px);
-    transition-delay: 0.6s;
-  }
-  /* No longer part of the animated sequence — appears instantly with
-     everything else once docked. */
-  .hl-part--period {
-    transition: none;
-  }
-  .hero-spotlight-card.is-docked .hl-part {
+  .hero-spotlight-card.is-docked .hsl-punct {
     opacity: 1;
-    transform: none;
+    transform: scale(1);
   }
   /* "View My Projects" button, right below the sentence — last beat in
-     the sequence, starting once the closing period has fully finished
-     (2.7s delay + 0.6s duration = 3.3s). Width/margin reset from the
-     base rule (which relies on script.js measuring/setting a JS width
-     that's never applied on mobile, see the isMobileViewport() guards)
-     to a plain content-sized, left-aligned block instead. */
+     the sequence (see its own transition-delay further down for exact
+     timing). Width/margin reset from the base rule (which relies on
+     script.js measuring/setting a JS width that's never applied on
+     mobile, see the isMobileViewport() guards) to a fixed 75vw,
+     left-aligned block instead — .hero-spotlight-btn is flex:1 1 0
+     inside it (the sole child), so the button itself ends up 75vw too,
+     rather than stretching to the content column's own, wider width
+     (viewport minus .hero-spotlight-content's padding-inline), which
+     was reading as too big/nearly edge-to-edge. */
   .hero-spotlight-actions {
-    width: auto;
+    width: 75vw;
     margin-inline: 0;
-    margin-top: 20px;
+    /* Pushed further down from the sentence (was 20px) — more of a
+       deliberate gap before the CTA than a tight follow-on. */
+    margin-top: 44px;
     opacity: 0;
     transform: translateY(16px);
-    /* Starts once "& Culture" finishes (0.6s delay + 0.35s duration =
-       0.95s) — the only other thing still animated besides the
-       highlight words. */
-    transition: opacity 0.35s var(--ease) 0.95s, transform 0.35s var(--ease) 0.95s;
+    /* Final beat — starts once the closing period finishes (1.65s +
+       2 * 0.15s punctuation delay + 0.3s duration = 2.25s). Own emergence
+       slowed from 0.35s to 0.6s (was reading as too quick for the last
+       beat of the sequence) — motion (translateY) left as-is. */
+    transition: opacity 0.6s var(--ease) 2.25s, transform 0.6s var(--ease) 2.25s;
   }
   .hero-spotlight-card.is-docked .hero-spotlight-actions {
     opacity: 1;
     transform: none;
   }
+  /* Collapses the whole reveal above (card → one continuous per-word
+     sentence unravel, lead-in through the highlight → punctuation →
+     button → availability/location chips) into one simultaneous,
+     near-instant opacity fade — no clip-path/transform/scale, no
+     stagger. .hsl-word/.hsl-punct need opacity spelled out explicitly
+     here since their own base rules hide via clip-path/scale
+     respectively with per-element transition-delay baked in — this
+     overrides all of that with one flat rule. Nested media query, not a
+     separate top-level one, so it only ever applies together with the
+     mobile max-width condition above. */
+  @media (prefers-reduced-motion: reduce) {
+    .hero-spotlight-card,
+    .hero-spotlight-actions,
+    .hero-spotlight-chip--green,
+    .hero-spotlight-chip--red {
+      transform: none;
+      transition: opacity 0.15s linear;
+    }
+    .hsl-word,
+    .hsl-punct {
+      clip-path: none;
+      transform: none;
+      opacity: 0;
+      transition: opacity 0.15s linear;
+    }
+    .hero-spotlight-card.is-docked,
+    .hero-spotlight-card.is-docked .hero-spotlight-actions,
+    .hero-spotlight-card.is-docked .hero-spotlight-chip--green,
+    .hero-spotlight-card.is-docked .hero-spotlight-chip--red {
+      opacity: 1;
+    }
+    .hero-spotlight-card.is-docked .hsl-word,
+    .hero-spotlight-card.is-docked .hsl-punct {
+      opacity: 1;
+    }
+  }
   /* Drops "View" — "My Projects" instead of "View My Projects".
      Desktop keeps the original (see the base rule further up). */
   .hsb-label--desktop { display: none; }
   .hsb-label--mobile { display: inline; }
-  /* Glassy instead of the solid saffron fill — transparent/blurred
-     background, white text/icons, no border color tied to the fill.
-     Slimmer too: vertical padding cut well below the horizontal, where
-     the base rule keeps them closer together. */
+  /* Same solid saffron fill/border/text as desktop now (no more glassy/
+     transparent treatment — everything color-related here was dropped
+     so it just inherits the base rule further up instead of overriding
+     it, hover included). Only the size (font-size/icon clamps below)
+     and padding stay mobile-specific — the fluid size was already
+     tuned right for this viewport, just the vertical padding trimmed a
+     touch further than the base rule's. */
   .hero-spotlight-btn {
     font-size: clamp(1.15rem, 5.33vw, 2.33rem);
-    color: var(--surface-50);
-    background: rgba(255, 255, 255, 0.1);
-    border-color: rgba(255, 255, 255, 0.35);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    padding: 0.35rem 1.4rem;
-  }
-  .hero-spotlight-btn:hover {
-    color: var(--surface-50);
-    background: rgba(255, 255, 255, 0.16);
-    border-color: rgba(255, 255, 255, 0.5);
+    /* Vertical trimmed further still (was 0.28rem) — reads as too
+       tall/padded at this button's current size. */
+    padding: 0.16rem 1.4rem;
   }
   .hero-spotlight-btn-projects-icon,
   .hero-spotlight-btn-icon {

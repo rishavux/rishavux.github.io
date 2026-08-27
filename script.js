@@ -33,6 +33,17 @@ document.addEventListener('DOMContentLoaded', () => {
       /* Space normally activates a focused button/link — don't eat
          that just because space is also a scroll key. */
       if (e.key === ' ' && SPACE_ACTIVATABLE_TAGS.has(e.target.tagName)) return;
+    } else if (e.type === 'touchmove' && e.target.closest('button, a')) {
+      /* Same idea as the space-key carve-out above, for touch: don't
+         eat a touch that's happening on/starting from an interactive
+         control. A real finger (and notably Chrome DevTools' mouse-to-
+         touch emulation, used when testing via the device toolbar) can
+         generate a tiny touchmove even for what's meant to be a
+         stationary tap — preventDefault()ing that here was swallowing
+         the tap outright (no click ever fires, e.g. on #hero-scroll-btn)
+         instead of just blocking page scroll, which is all this is
+         actually meant to stop. */
+      return;
     }
     e.preventDefault();
   }
@@ -184,8 +195,10 @@ document.addEventListener('DOMContentLoaded', () => {
      length above. The chip is otherwise anchored directly to the
      name's own live position/scale every frame (see updateHero) —
      "the same element", not a separately tuned animation — so this is
-     the only chip-specific number left to tune. */
-  const MOBILE_ROLE_CHIP_DOCKED_GAP = 2;
+     the only chip-specific number left to tune. Set to 0 (touching,
+     same as rest) — a docked gap here read as too much empty space
+     between the name and the chip. */
+  const MOBILE_ROLE_CHIP_DOCKED_GAP = 0;
   /* Chip's own natural (unscaled, rest) size — measured once in
      remeasureHeroMorph, the same "unstyle, measure" trick used for the
      name/avatar. Needed because the chip is still a wide (60vw at
@@ -586,7 +599,9 @@ document.addEventListener('DOMContentLoaded', () => {
        dock center shifts down by this much so it stays vertically
        centered on that whole block instead of sitting high, centered
        on just the name's own line. Desktop has no chip below the name,
-       so it isn't shifted. */
+       so it isn't shifted. style.css's mobile --dock-center-y (which
+       .hero-nav/.projects-nav-back-btn center themselves on) hand-copies
+       this same 16px — keep both in sync if this ever changes. */
     const MOBILE_AVATAR_DOCK_Y_SHIFT = 16;
     const avatarDockCenterX = DOCK_SIDE + AVATAR_DOCK / 2;
     const avatarDockCenterY = DOCK_TOP + AVATAR_DOCK / 2 + (isMobileViewport() ? MOBILE_AVATAR_DOCK_Y_SHIFT : 0);

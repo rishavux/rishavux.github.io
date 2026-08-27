@@ -130,8 +130,26 @@
        directly from script.js instead. -->
   <div class="hero-spotlight-card" id="hero-spotlight-card">
     <div class="hero-spotlight-content">
-      <p class="hero-spotlight-line"><span class="hsl-lead hsl-lead--desktop">I am a</span><span class="hsl-lead hsl-lead--mobile">I am a</span> creative designer at the intersection of</p>
-      <p class="hero-spotlight-highlight" id="hero-spotlight-highlight"><span class="hl-part hl-part--intelligence">Intelligence,</span> <span class="hl-part hl-part--behavior">Behavior,</span> <span class="hl-part hl-part--culture">&amp; Culture</span><span class="hl-part hl-part--period">.</span></p>
+      <!-- Mobile's copy of the WHOLE sentence — this line and the
+           highlight line below together — is split into individual
+           .hsl-word spans so every word unravels on its own via
+           clip-path, one continuous typed-in sentence rather than the
+           lead-in and the highlight animating differently. On desktop
+           these same spans render as plain inline text (no CSS keys off
+           .hsl-word/.hsl-punct outside the mobile block in style.css) —
+           desktop's own reveal is untouched, still just the whole
+           highlight paragraph fading in as one block via the shared
+           .is-revealed rule further up in style.css. --i drives
+           each word's stagger (transition-delay: calc(var(--i) * step))
+           instead of one class per word, and is a single sequence
+           spanning both <p> elements (0 through 12) so the highlight
+           words continue the same cadence instead of restarting. Commas
+           and the period are pulled out into their own .hsl-punct spans
+           (see style.css) that wait for every .hsl-word above to finish
+           before coming in as their own beat, rather than being glued
+           to their preceding word's own timing. --p sequences those. -->
+      <p class="hero-spotlight-line"><span class="hsl-lead hsl-lead--desktop">I am a</span><span class="hsl-lead hsl-lead--mobile"><span class="hsl-word" style="--i:0">I</span> <span class="hsl-word" style="--i:1">am</span> <span class="hsl-word" style="--i:2">a</span></span> <span class="hsl-word" style="--i:3">creative</span> <span class="hsl-word" style="--i:4">designer</span> <span class="hsl-word" style="--i:5">at</span> <span class="hsl-word" style="--i:6">the</span> <span class="hsl-word" style="--i:7">intersection</span> <span class="hsl-word" style="--i:8">of</span></p>
+      <p class="hero-spotlight-highlight" id="hero-spotlight-highlight"><span class="hsl-word" style="--i:9">Intelligence</span><span class="hsl-punct" style="--p:0">,</span> <span class="hsl-word" style="--i:10">Behavior</span><span class="hsl-punct" style="--p:1">,</span> <span class="hsl-word" style="--i:11">&amp;</span> <span class="hsl-word" style="--i:12">Culture</span><span class="hsl-punct" style="--p:2">.</span></p>
 
       <div class="hero-spotlight-actions" id="hero-spotlight-actions">
         <a href="#projects" class="hero-spotlight-btn" id="hero-spotlight-projects-btn" data-section="projects">
