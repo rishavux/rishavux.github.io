@@ -758,6 +758,15 @@ section { position: relative; }
   align-items: flex-start;
   gap: 1.5rem;
   margin-top: clamp(20px, 2.6vw, 34px);
+  /* Restores this row's original position ABOVE the buttons row below,
+     since the two swapped places in the actual markup (mobile shows
+     the buttons row first, then this one — see index.html) — desktop's
+     .hero-spotlight-content is a flex column, so `order` re-sorts them
+     back to how they used to read; mobile overrides .hero-spotlight-
+     content to display:block (so its "one flowing sentence" trick
+     works), where `order` has no effect and elements simply follow
+     source order instead, which is exactly what mobile wants. */
+  order: 1;
   /* Width set in px from script.js, matched to the buttons row below
      (which is itself matched to the highlight line's rendered width)
      — combined with each item being flex: 1 1 0 (same split the
@@ -922,6 +931,8 @@ section { position: relative; }
 }
 .hero-spotlight-actions {
   display: flex;
+  /* See the comment on .hero-spotlight-meta's own `order` above. */
+  order: 2;
   margin-top: clamp(28px, 3.4vw, 44px);
   /* Width is set in px from script.js, matched every reflow to
      #hero-spotlight-highlight's own rendered width, same as the chip
@@ -969,6 +980,18 @@ section { position: relative; }
   height: 19px;
   flex-shrink: 0;
 }
+/* Same Projects glyph as .nav-link's own icon (Figma node 158:94) —
+   reused here rather than re-drawn so the two stay visually
+   identical. */
+.hero-spotlight-btn-projects-icon {
+  width: 19px;
+  height: 19px;
+  flex-shrink: 0;
+}
+/* Mobile-only label swap — desktop keeps "View My Projects" (below via
+   .hsb-label--mobile{display:none}), mobile drops "View" (see the
+   mobile override further down). */
+.hsb-label--mobile { display: none; }
 
 /* Mobile hero copy — the frosted glass card + stupa-light reveal is
    shelved for now (see the isMobileViewport() guards in script.js
@@ -992,7 +1015,7 @@ section { position: relative; }
        script.js). Sits just below the docked avatar/name/nav row
        (--dock-top + --avatar-dock ≈ 86px) — adjust directly to move
        it. */
-    top: 145px;
+    top: 100px;
     width: auto;
     height: auto;
     background: none;
@@ -1001,28 +1024,73 @@ section { position: relative; }
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
     clip-path: none;
-    /* Hidden off to the left until the avatar/name/nav actually docks
-       (.is-docked, toggled alongside them in script.js's updateHero) —
-       then slides + fades in from the left edge of the screen. The
-       0.3s delay lets the role chip (script.js's updateHero, driven
-       continuously off the same morph progress) finish landing under
-       the nav first, so the sentence visibly follows it rather than
-       arriving at the same instant. */
+    /* Appears instantly with docking — not part of the animated
+       sequence any more (only the highlight words and the button
+       still animate, see further down), so there's nothing here to
+       wait on. */
     opacity: 0;
-    transform: translateX(-100%);
-    transition: opacity 0.6s var(--ease) 0.3s, transform 0.6s var(--ease) 0.3s;
+    transform: none;
+    transition: none;
   }
   .hero-spotlight-card.is-docked {
     opacity: 1;
     transform: translateX(0);
   }
-  /* The role chip now lives entirely in #mobile-role-chip (see its own
-     rule further down) — always visible, position/scale/opacity driven
-     continuously by script.js's updateHero() rather than appearing
-     separately here once docked. */
-  .hero-spotlight-meta,
-  .hero-spotlight-actions {
+  /* Blue ("UI / UX Designer") now lives entirely in #mobile-role-chip
+     (see its own rule further down) — hidden here so it doesn't show
+     twice. Green ("Currently looking for") and red ("I am located
+     in") show here instead, stacked below the button as the last two
+     beats in the sequence. */
+  .hero-spotlight-meta {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 14px;
+    margin-top: 24px;
+    margin-inline: 0;
+  }
+  /* Scoped to inside the meta row specifically — .hero-spotlight-
+     chip--blue is also the class #mobile-role-chip carries for its own
+     shared visual styling further down, so a bare `.hero-spotlight-
+     chip--blue { display:none }` here would have hidden that too. */
+  #hero-spotlight-meta .hero-spotlight-chip--blue {
     display: none;
+  }
+  /* Same row layout / glassy-tint treatment as the role chip got
+     earlier, fluid from 375px like everything else. */
+  .hero-spotlight-chip--green,
+  .hero-spotlight-chip--red {
+    flex: 0 0 auto;
+    width: auto;
+    flex-direction: row;
+    align-items: center;
+    gap: clamp(10px, 2.67vw, 20px);
+    padding: clamp(6px, 1.6vw, 12px) clamp(16px, 4.27vw, 32px);
+    /* No longer part of the animated sequence — the parent card's own
+       opacity (instant now, see .hero-spotlight-card above) already
+       gates whether these are visible at all, same as how
+       .hero-spotlight-line stays permanently opacity:1 itself. */
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+  /* Same opacity as the base (desktop) rules — real brand color, not a
+     faint tint. */
+  .hero-spotlight-chip--green {
+    background: color-mix(in srgb, var(--botanical-green-900) 80%, transparent);
+  }
+  .hero-spotlight-chip--red {
+    background: color-mix(in srgb, var(--oxide-red-900) 90%, transparent);
+  }
+  .hero-spotlight-meta .hero-spotlight-chip-line:not(.hero-spotlight-chip-line--bold) {
+    display: none;
+  }
+  .hero-spotlight-meta .hero-spotlight-chip-icon {
+    width: clamp(19px, 5.07vw, 39px);
+    height: clamp(19px, 5.07vw, 39px);
+  }
+  .hero-spotlight-meta .hero-spotlight-chip-line--bold {
+    font-size: clamp(1.19rem, 5.07vw, 2.41rem);
   }
   /* Pure visual/sizing — shared with #mobile-role-chip, which carries
      this same class for its background/padding/layout (see its own
@@ -1045,10 +1113,9 @@ section { position: relative; }
        rather than staying flat while the box around them grows. */
     gap: clamp(16px, 4.27vw, 32px);
     padding: clamp(6px, 1.6vw, 12px) clamp(26px, 6.93vw, 53px);
-    /* Was 80% (the base rule) — much more transparent here so the
-       chip reads as a faint tint over the photo instead of a solid
-       card. */
-    background: color-mix(in srgb, var(--mineral-blue-900) 5%, transparent);
+    /* Same 80% opacity as the base (desktop) rule — keeps the chip's
+       actual brand color, not a faint tint. */
+    background: color-mix(in srgb, var(--mineral-blue-900) 80%, transparent);
   }
   /* "My work spans" dropped — just the bold value now ("UI / UX
      Designer"). :not() keeps this scoped to the plain label line
@@ -1079,7 +1146,7 @@ section { position: relative; }
        across the whole flowing/wrapped sentence (letter-spacing
        inherits; line-height on inline children only affects their own
        line-box contribution, not the wrap spacing as a whole). */
-    letter-spacing: 0.02em;
+    letter-spacing: 0.06em;
     line-height: 1.85;
   }
   .hero-spotlight-line,
@@ -1132,28 +1199,77 @@ section { position: relative; }
   .hl-part {
     display: inline-block;
     opacity: 0;
-    transition: opacity 0.6s var(--ease), transform 0.6s var(--ease);
+    transition: opacity 0.35s var(--ease), transform 0.35s var(--ease);
   }
-  /* One at a time, not all together: the opening line slides/fades in
-     first (.hero-spotlight-card's own 0.6s transition, itself delayed
-     0.3s so the role chip lands under the nav first), THEN
-     "Intelligence" from the left, THEN "Behavior" from the right, THEN
-     "& Culture" up from below — each delayed to start only once the
-     previous one has fully finished (0.6s duration each, delays
-     stepped by 0.6s on top of the card's own 0.3s head start), all
-     still gated by the same .is-docked flag the card itself uses. All
-     three now flow inline as part of the one sentence (see
-     .hero-spotlight-content above) rather than each forcing its own
-     line. */
-  .hl-part--intelligence { transform: translateX(-60px); transition-delay: 0.9s; }
-  .hl-part--behavior { transform: translateX(60px); transition-delay: 1.5s; }
+  /* The only other thing still animated besides the button — quicker
+     now (0.35s each instead of 0.6s, stepped by 0.3s instead of 0.6s)
+     since the rest of the sequence (sentence, period, chips) was
+     making docking feel slow: "Intelligence" from the left, THEN
+     "Behavior" from the right, THEN "& Culture" up from below, each
+     starting before the previous one has fully finished (a bit of
+     overlap keeps it feeling snappy rather than a stricter relay). */
+  .hl-part--intelligence { transform: translateX(-60px); transition-delay: 0s; }
+  .hl-part--behavior { transform: translateX(60px); transition-delay: 0.3s; }
   .hl-part--culture {
     transform: translateY(40px);
-    transition-delay: 2.1s;
+    transition-delay: 0.6s;
+  }
+  /* No longer part of the animated sequence — appears instantly with
+     everything else once docked. */
+  .hl-part--period {
+    transition: none;
   }
   .hero-spotlight-card.is-docked .hl-part {
     opacity: 1;
     transform: none;
+  }
+  /* "View My Projects" button, right below the sentence — last beat in
+     the sequence, starting once the closing period has fully finished
+     (2.7s delay + 0.6s duration = 3.3s). Width/margin reset from the
+     base rule (which relies on script.js measuring/setting a JS width
+     that's never applied on mobile, see the isMobileViewport() guards)
+     to a plain content-sized, left-aligned block instead. */
+  .hero-spotlight-actions {
+    width: auto;
+    margin-inline: 0;
+    margin-top: 20px;
+    opacity: 0;
+    transform: translateY(16px);
+    /* Starts once "& Culture" finishes (0.6s delay + 0.35s duration =
+       0.95s) — the only other thing still animated besides the
+       highlight words. */
+    transition: opacity 0.35s var(--ease) 0.95s, transform 0.35s var(--ease) 0.95s;
+  }
+  .hero-spotlight-card.is-docked .hero-spotlight-actions {
+    opacity: 1;
+    transform: none;
+  }
+  /* Drops "View" — "My Projects" instead of "View My Projects".
+     Desktop keeps the original (see the base rule further up). */
+  .hsb-label--desktop { display: none; }
+  .hsb-label--mobile { display: inline; }
+  /* Glassy instead of the solid saffron fill — transparent/blurred
+     background, white text/icons, no border color tied to the fill.
+     Slimmer too: vertical padding cut well below the horizontal, where
+     the base rule keeps them closer together. */
+  .hero-spotlight-btn {
+    font-size: clamp(1.15rem, 5.33vw, 2.33rem);
+    color: var(--surface-50);
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.35);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    padding: 0.35rem 1.4rem;
+  }
+  .hero-spotlight-btn:hover {
+    color: var(--surface-50);
+    background: rgba(255, 255, 255, 0.16);
+    border-color: rgba(255, 255, 255, 0.5);
+  }
+  .hero-spotlight-btn-projects-icon,
+  .hero-spotlight-btn-icon {
+    width: clamp(19px, 5.07vw, 39px);
+    height: clamp(19px, 5.07vw, 39px);
   }
 
   /* Shown immediately, right under the name at rest, anchored to and
