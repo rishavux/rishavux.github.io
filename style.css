@@ -1110,8 +1110,9 @@ section { position: relative; }
     flex-direction: row;
     align-items: flex-start;
     gap: 14px;
-    /* Gap below the button, now that the chips trail it again. */
-    margin-top: 48px;
+    /* Gap below the button, now that the chips trail it again (was
+       48px — nudged up for more breathing room). */
+    margin-top: 68px;
     margin-inline: 0;
   }
   /* Scoped to inside the meta row specifically — .hero-spotlight-
