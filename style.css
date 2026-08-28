@@ -508,9 +508,18 @@ section { position: relative; }
     width: var(--nav-corner-btn-size);
     height: var(--nav-corner-btn-size);
   }
+  /* A little bigger than the 8px this was first set to (was 10px on
+     desktop before that) — circle itself (--nav-corner-btn-size) stays
+     the same, only the chevron inside grows. */
   .projects-back-chevron {
-    width: 8px;
-    height: 8px;
+    width: 12px;
+    height: 12px;
+  }
+  /* A little smaller than the base rule's 18px — circle itself
+     (--nav-corner-btn-size) stays the same, only the lines inside
+     shrink. */
+  .nav-toggle span {
+    width: 14px;
   }
 }
 
