@@ -129,6 +129,16 @@ document.addEventListener('DOMContentLoaded', () => {
   const AVATAR_BASE = parseFloat(rootStyles.getPropertyValue('--avatar-base'));
   const AVATAR_DOCK = parseFloat(rootStyles.getPropertyValue('--avatar-dock'));
   const TARGET_SCALE = AVATAR_DOCK / AVATAR_BASE;
+  /* Mobile-only (see style.css's mobile :root override) — the shared
+     size/inset for .projects-nav-back-btn and the hamburger, read here
+     purely so navBackShift below can reserve the CORRECT amount of
+     room next to it once Projects is open, instead of the desktop-only
+     assumption (back button == avatar-dock sized) that used to stand
+     in for it everywhere. Undefined/NaN on desktop, where these two
+     custom properties don't exist — harmless, since navBackShift only
+     ever reads them inside its own isMobileViewport() branch. */
+  const NAV_CORNER_BTN_SIZE = parseFloat(rootStyles.getPropertyValue('--nav-corner-btn-size'));
+  const NAV_CORNER_BTN_INSET = parseFloat(rootStyles.getPropertyValue('--nav-corner-btn-inset'));
 
   /* hero-bg.jpg's own object-position starts at "center 22%" (see
      .hero-bg-img in style.css). Panning it further down as you scroll
@@ -720,12 +730,25 @@ document.addEventListener('DOMContentLoaded', () => {
     const avatarScale = 1 - (1 - TARGET_SCALE) * sizeP;
     const nameScale = 1 - (1 - dockNameFontPx() / nameRestFontPx) * sizeP;
 
-    /* Reserves room for .projects-nav-back-btn (same width as the
-       docked avatar, plus the same gap the avatar/name themselves
-       use) at the left edge — only while the Projects panel is open,
-       and scaled by travelP so it's already at full strength by the
-       time the lockup actually reaches the corner, not a snap. */
-    const navBackShift = projectsOpen ? (AVATAR_DOCK + DOCK_GAP) * travelP : 0;
+    /* Reserves room for .projects-nav-back-btn at the left edge, so the
+       avatar/name row lands right next to it instead of overlapping —
+       only while the Projects panel is open, and scaled by travelP so
+       it's already at full strength by the time the lockup actually
+       reaches the corner, not a snap. On mobile the back button is its
+       own separate size/inset (--nav-corner-btn-size/-inset, shared
+       with the hamburger — see style.css), positioned independently of
+       DOCK_SIDE, so the shift needed is "however far its right edge
+       sits past where the avatar would normally start (DOCK_SIDE),
+       plus the usual DOCK_GAP" rather than the desktop-only shorthand
+       of just reusing the avatar's own dock width — desktop's back
+       button (46px) happens to be sized/positioned off DOCK_SIDE/
+       AVATAR_DOCK already, so it keeps that simpler original math. */
+    const navBackShift = projectsOpen
+      ? (isMobileViewport()
+          ? NAV_CORNER_BTN_INSET + NAV_CORNER_BTN_SIZE + DOCK_GAP - DOCK_SIDE
+          : AVATAR_DOCK + DOCK_GAP
+        ) * travelP
+      : 0;
     const hubX = restHubX + (dockHubX - restHubX) * travelP + navBackShift;
     const hubY = restHubY + (dockHubY - restHubY) * travelP;
 

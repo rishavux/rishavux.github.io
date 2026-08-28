@@ -456,7 +456,20 @@ section { position: relative; }
 }
 
 @media (max-width: 760px) {
-  .nav-toggle { display: flex; }
+  /* Same circular frame/fill and size as .projects-nav-back-btn (see
+     --nav-corner-btn-size/-inset above) — was bare lines with no frame
+     at all; brought back to match the back arrow now that the two sit
+     in the same corner-nav role, one on each side of the screen. */
+  .nav-toggle {
+    display: flex;
+    width: var(--nav-corner-btn-size);
+    height: var(--nav-corner-btn-size);
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.55);
+    background: rgba(21, 21, 21, 0.4);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
   .nav-links {
     position: absolute;
     top: calc(100% + 10px);
@@ -478,6 +491,27 @@ section { position: relative; }
   }
   .nav-links.is-open { opacity: 1; transform: translateY(0) scale(1); pointer-events: auto; }
   .nav-link { justify-content: center; }
+  /* Pushed further toward the right edge than the shared --dock-side
+     (28px, also what the avatar's own dock math in script.js keys off
+     — left untouched here on purpose, this only moves the hamburger)
+     to sit next to .projects's own horizontal padding instead (1.25rem
+     = 20px floor, see its own rule), which is what the panel's actual
+     content — the project cards — lines up against. */
+  .hero-nav { right: var(--nav-corner-btn-inset); }
+  /* Smaller (was 46px) and pushed left to the same edge inset as the
+     hamburger above, rather than sharing --dock-side with the avatar
+     (see .hero-nav's own comment just above for why that's left
+     alone). Both share --nav-corner-btn-size/-inset so they always
+     stay the same size/inset as each other. */
+  .projects-nav-back-btn {
+    left: var(--nav-corner-btn-inset);
+    width: var(--nav-corner-btn-size);
+    height: var(--nav-corner-btn-size);
+  }
+  .projects-back-chevron {
+    width: 8px;
+    height: 8px;
+  }
 }
 
 /* The only entry point into the dock transition — position is set
@@ -558,6 +592,19 @@ section { position: relative; }
        — both centered purely on --dock-center-y — sit 16px above where
        the avatar/name row actually docks instead of sharing its row. */
     --dock-center-y: calc(var(--dock-top) + var(--avatar-dock) / 2 + 16px);
+    /* Shared size/inset for the two corner nav circles — the Projects
+       back arrow (left) and the hamburger (right) — so they match each
+       other exactly instead of each carrying their own numbers.
+       Deliberately its own pair of variables rather than reusing
+       --avatar-dock/--dock-side: those drive the avatar's own dock
+       math (see script.js's DOCK_SIDE/AVATAR_DOCK), and this size is
+       meant to be independent of the avatar's. script.js also reads
+       both of these (NAV_CORNER_BTN_SIZE/_INSET) to correctly reserve
+       room next to the back button for the avatar/name row once the
+       Projects panel is open (see navBackShift in updateHero) — keep
+       any resize here and there in sync. */
+    --nav-corner-btn-size: 36px;
+    --nav-corner-btn-inset: 20px;
   }
   /* Floor tuned at 375px width (2.2rem); the vw coefficient is set so
      that term already equals the floor exactly AT 375px (rather than
@@ -1831,7 +1878,13 @@ section { position: relative; }
 .ez-thumb-title {
   font-family: 'Cinzel', serif;
   font-weight: 500;
-  font-size: clamp(1.7rem, 3vw, 2.4rem);
+  /* Slightly smaller (was clamp(1.7rem,3vw,2.4rem)) and tightened up
+     with a negative letter-spacing (Cinzel's own letterforms already
+     read quite wide/spaced at display sizes, even at the default
+     "normal" tracking this had before) — reads less loose next to the
+     icon mark. */
+  font-size: clamp(1.5rem, 2.7vw, 2.2rem);
+  letter-spacing: -0.02em;
   line-height: 1;
   color: var(--ink-900);
   white-space: nowrap;
@@ -1919,14 +1972,19 @@ section { position: relative; }
    so this just reinforces that the card is clickable. Lives inside
    .project-thumb now (its position:relative anchor), vertically
    centered on the thumb's own height rather than offset from the
-   card's top edge — colored ink-900 (dark) since it sits over the
-   light thumb background, not the surface-50 used elsewhere. */
+   card's top edge — colored via --accent (was a flat ink-900) so it
+   matches each card's own brand color instead of being generic: EZ's
+   card is .accent-red, which resolves --accent to --oxide-red-700
+   (#8d2318), the exact red used in the EZ wordmark itself; PP's card
+   is .accent-blue, whose --accent is overridden further down to
+   #189293, the exact teal from the PP icon (see that rule's own
+   comment). Both read fine against their light thumb backgrounds. */
 .project-view-icon {
   position: absolute;
   top: 50%;
   right: clamp(1rem, 1.6vw, 1.5rem);
   transform: translateY(-50%);
-  color: var(--ink-900);
+  color: var(--accent);
   opacity: 0.7;
   transition: opacity 0.3s var(--ease), transform 0.3s var(--ease);
 }
@@ -1941,6 +1999,45 @@ section { position: relative; }
 }
 @media (max-width: 760px) {
   .project-grid { grid-template-columns: 1fr; }
+  .projects {
+    /* Was 100% width / auto height (see the base rule's own comment)
+       so it never cropped horizontally, extending past the fold
+       vertically instead — on a narrow, tall phone that meant the
+       image didn't actually reach the bottom edge, showing gaps.
+       `cover` fills the whole fixed panel on both axes, centered,
+       cropping whichever edge doesn't fit rather than leaving any
+       uncovered. */
+    background-size: cover;
+    /* Docked avatar/name/role-chip row is ~86-100px tall here (see
+       .hero-spotlight-card's own top:100px + comment, same clearance
+       reused) and sits at a higher z-index (.hero-nav, 200+) than this
+       panel (190) — without room reserved for it, this panel's own
+       content started right at the very top of the viewport and ended
+       up tucked underneath/overlapping it. */
+    padding-top: 100px;
+  }
+  /* Less empty space above/below the logo — was clamp(64px,15vh,150px),
+     reading as too much top/bottom air around the EZ Brow & Beauty and
+     PropertyPixel wordmarks (and the open-link icon beside them) at
+     this narrower width. */
+  .project-thumb {
+    height: clamp(56px, 9vh, 100px);
+  }
+  /* Much smaller than the base rule's 34px — reads as oversized next
+     to the now-shorter thumb (see .project-thumb above) at this width,
+     for both the EZ Brow & Beauty and PropertyPixel cards. Nudged back
+     up a touch from an initial 18px — that read as too small. */
+  .project-view-icon svg {
+    width: 22px;
+    height: 22px;
+  }
+  /* Smaller than the base rule's clamp(0.88rem,...,1.05rem) — the
+     description reads too large next to the now-tighter thumb/icon
+     sizing above, for both the EZ Brow & Beauty and PropertyPixel
+     cards. */
+  .project-desc {
+    font-size: clamp(0.78rem, 0.35vw + 0.5vh + 0.55rem, 0.92rem);
+  }
 }
 
 /* ═══════════════════════════════════════════════════════════
