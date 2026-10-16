@@ -302,8 +302,9 @@ section { position: relative; }
 }
 /* .hero-morph itself only exists now as: (a) the flex-column rest
    layout script.js measures on load/resize, and (b) the click target
-   (its <a> href="#hero") — clicks on the avatar/name still bubble up
-   to it normally. It plays no role in live positioning any more: the
+   (its <a> href="#hero"). The avatar and name are moved out of it to
+   <body> by script.js, so they carry their own click handler and,
+   once docked, their own pointer cursor (.is-docked below). It plays no role in live positioning any more: the
    avatar and name below are each their own independently-animated
    position:fixed element, driven by script.js's updateHero(), which
    is why they need their own z-index rather than inheriting one. */
@@ -337,6 +338,10 @@ section { position: relative; }
   transform-origin: 0 0;
   will-change: transform;
   z-index: 210;
+}
+.hero-avatar.is-docked,
+.hero-morph-name.is-docked {
+  cursor: pointer;
 }
 
 /* Own fixed spot at the same --dock-top/--dock-side/--avatar-dock

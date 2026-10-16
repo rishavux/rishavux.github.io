@@ -18,7 +18,10 @@ document.addEventListener('DOMContentLoaded', () => {
      times — navigation only ever happens via #hero-scroll-btn or a nav
      link, both of which move the page with window.scrollTo()/anchor
      navigation directly, neither of which fires these events, so
-     they're never affected by the block. Event-based rather than CSS
+     they're never affected by the block. Scroll gestures still count
+     as a trigger, though: see the scroll-gesture listeners near the
+     down-button handler, which read their direction and play the same
+     down/back-to-top sequences. Event-based rather than CSS
      `overflow: hidden` specifically so it never risks fighting with
      those programmatic scrolls. Only ever set up here, in JS, so a
      page with JS disabled/failed stays normally scrollable instead of
@@ -706,11 +709,15 @@ document.addEventListener('DOMContentLoaded', () => {
          flag (see the mobile block in style.css) — no-op on wider
          viewports, where the class just sits unused on this element. */
       heroSpotlightCard.classList.add('is-docked');
+      heroAvatar.classList.add('is-docked');
+      heroMorphName.classList.add('is-docked');
     } else if (morphP < 1 && isDocked) {
       heroMorph.classList.remove('is-docked');
       heroNav.classList.remove('is-docked');
       heroNavBar.classList.remove('is-docked');
       heroSpotlightCard.classList.remove('is-docked');
+      heroAvatar.classList.remove('is-docked');
+      heroMorphName.classList.remove('is-docked');
     }
 
     /* The scroll button is only relevant before the transition starts
@@ -933,12 +940,18 @@ document.addEventListener('DOMContentLoaded', () => {
      content isn't flex-centered inside the card, that stale height
      shows up as top-aligned content with a big dead gap below the
      buttons instead of matching top/bottom padding — full remeasure
-     (which also re-syncs the widths) fixes both. */
-  if (document.fonts && document.fonts.ready) {
-    document.fonts.ready.then(() => {
-      remeasureStupaLight();
-      renderStupaReveal(stupaRevealP);
-    });
+     (which also re-syncs the widths) fixes both.
+     The same goes for the avatar/name lockup and the mobile role chip:
+     their rest positions are measured from the name's and chip's
+     text widths, so a fallback-font measurement leaves the chip off
+     center once the real font swaps in (visibly right-shifted on
+     phones). onResize remeasures all of it. `loadingdone` catches
+     fonts that only start loading after `ready` has already resolved
+     — whether that happens depends on what the browser has cached, so
+     it varies from visit to visit. */
+  if (document.fonts) {
+    if (document.fonts.ready) document.fonts.ready.then(onResize);
+    document.fonts.addEventListener('loadingdone', onResize);
   }
   onScroll();
 
@@ -1185,6 +1198,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   heroScrollBtn.addEventListener('click', animateArrangeThenScroll);
 
+
   /* The docked avatar/name lockup doubles as a "back to top" toggle —
      same animated scroll as the button above, just in reverse, instead
      of relying on the browser's own (much faster, un-eased-with-our-
@@ -1193,14 +1207,75 @@ document.addEventListener('DOMContentLoaded', () => {
      backwards in sync with the same eased scroll: startP (wherever the
      reveal actually was when clicked — usually 1, but this stays
      correct even if clicked mid-reveal) ramps down to 0 as `eased`
-     ramps 0→1, so the next trip down plays the whole intro again. */
-  heroMorph.addEventListener('click', (e) => {
-    e.preventDefault();
+     ramps 0→1, so the next trip down plays the whole intro again.
+     Listens on the avatar and name themselves, not on #hero-morph:
+     remeasureHeroMorph moves both out to <body>, so clicks on them
+     never bubble up to the link any more. #hero-morph keeps the
+     listener too, for keyboard focus + Enter. Does nothing while the
+     lockup is still at rest in the hero (nothing to go back from). */
+  function goBackToTop(e) {
+    if (e) e.preventDefault();
+    if (!heroMorph.classList.contains('is-docked') && !projectsOpen) return;
     const startP = stupaRevealP;
     animateScrollTo(heroPin.offsetTop, (eased) => {
       renderStupaReveal(startP * (1 - eased));
     }, 1700);
     closeProjects();
+  }
+  [heroMorph, heroAvatar, heroMorphName].forEach((el) => el.addEventListener('click', goBackToTop));
+
+  /* Scroll gestures (wheel/trackpad, a finger swipe, or a scroll key)
+     act like the two buttons: downward from the hero's rest state plays
+     the down-button sequence, upward from the fully-revealed state plays
+     goBackToTop. blockScrollInput above still eats the native scroll
+     itself — this only reads the gesture's direction. Each direction
+     only fires from its own end state (and never mid-animation or with
+     Projects open), so trackpad momentum or extra wheel ticks after a
+     trip can't replay it. WHEEL_TRIGGER_PX / TOUCH_TRIGGER_PX are how
+     far a gesture has to travel to count, so a stray nudge doesn't set
+     it off. */
+  const WHEEL_TRIGGER_PX = 20;
+  const TOUCH_TRIGGER_PX = 30;
+  const SCROLL_DOWN_KEYS = new Set(['ArrowDown', 'PageDown', ' ']);
+  const SCROLL_UP_KEYS = new Set(['ArrowUp', 'PageUp']);
+  let wheelTotal = 0;
+  let touchStartY = null;
+
+  /* direction: 1 = down, -1 = up. */
+  function scrollGesture(direction) {
+    if (scrollAnimating || projectsOpen) return;
+    if (direction > 0 && stupaRevealP === 0) animateArrangeThenScroll();
+    else if (direction < 0 && stupaRevealP === 1) goBackToTop();
+  }
+
+  window.addEventListener('wheel', (e) => {
+    if (e.deltaY === 0) return;
+    /* Restart the tally whenever the gesture changes direction. */
+    if (Math.sign(e.deltaY) !== Math.sign(wheelTotal)) wheelTotal = 0;
+    wheelTotal += e.deltaY;
+    if (Math.abs(wheelTotal) >= WHEEL_TRIGGER_PX) {
+      scrollGesture(Math.sign(wheelTotal));
+      wheelTotal = 0;
+    }
+  }, { passive: true });
+
+  window.addEventListener('touchstart', (e) => {
+    touchStartY = e.touches[0].clientY;
+  }, { passive: true });
+  window.addEventListener('touchmove', (e) => {
+    if (touchStartY === null) return;
+    /* Finger moving up the screen = scrolling down. */
+    const dy = touchStartY - e.touches[0].clientY;
+    if (Math.abs(dy) >= TOUCH_TRIGGER_PX) {
+      touchStartY = null;
+      scrollGesture(Math.sign(dy));
+    }
+  }, { passive: true });
+
+  window.addEventListener('keydown', (e) => {
+    if (e.key === ' ' && SPACE_ACTIVATABLE_TAGS.has(e.target.tagName)) return;
+    if (SCROLL_DOWN_KEYS.has(e.key)) scrollGesture(1);
+    else if (SCROLL_UP_KEYS.has(e.key)) scrollGesture(-1);
   });
 
   /* ═══════════════════════════════════════════════════════════
