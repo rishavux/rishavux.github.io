@@ -908,7 +908,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if (ticking) return;
     ticking = true;
     window.requestAnimationFrame(() => {
-      updateHero(activeForcedMorphP);
+      /* While Projects is open the dock is pinned at 1 (see
+         openProjects) — a resize landing here must not hand it back
+         to real scroll, or the avatar/name drop onto the cards. */
+      updateHero(projectsOpen ? 1 : activeForcedMorphP);
       updateTravel();
       updateProgressBar();
       ticking = false;
@@ -958,7 +961,10 @@ document.addEventListener('DOMContentLoaded', () => {
   /* ═══════════════════════════════════════════════════════════
      PROJECT CARD CURSOR TILT
   ═══════════════════════════════════════════════════════════ */
-  if (!prefersReducedMotion) {
+  /* Off for now — cards use a plain CSS hover lift instead. Flip to
+     true to bring the cursor tilt back. */
+  const PROJECT_CARD_TILT = false;
+  if (PROJECT_CARD_TILT && !prefersReducedMotion) {
     document.querySelectorAll('.project-card').forEach((card) => {
       card.addEventListener('mousemove', (e) => {
         const rect = card.getBoundingClientRect();
@@ -1001,7 +1007,9 @@ document.addEventListener('DOMContentLoaded', () => {
   const sections = document.querySelectorAll('main section[id]:not(#projects)');
   const sectionObserver = new IntersectionObserver((entries) => {
     entries.forEach((entry) => {
-      if (entry.isIntersecting) {
+      /* A resize can re-fire this under the open Projects panel —
+         keep Projects highlighted until it's closed. */
+      if (entry.isIntersecting && !projectsOpen) {
         navLinkEls.forEach((link) => {
           link.classList.toggle('active', link.dataset.section === entry.target.id);
         });
