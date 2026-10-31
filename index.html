@@ -1,341 +1,142 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Rishav Gautam — UX Designer</title>
-<meta name="description" content="Rishav Gautam, UX designer — portfolio and case studies." />
-<link rel="preconnect" href="https://fonts.googleapis.com" />
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400;1,9..144,500&family=Montserrat:wght@400;500;600;700&family=Cinzel:wght@500&family=Baloo+2:wght@500;600;700&family=Balthazar&display=swap" rel="stylesheet" />
-<link rel="stylesheet" href="style.css" />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Rishav Gautam — Product Designer</title>
+  <meta name="description" content="Rishav Gautam, product designer in the San Francisco Bay Area. Selected work, about and contact." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Libre+Caslon+Text:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
-<div class="scroll-progress" id="scroll-progress" aria-hidden="true"></div>
-
-<main>
-
-  <div class="hero-pin" id="hero-pin">
-    <section class="hero" id="hero">
-      <img class="hero-bg-img" id="hero-bg-img" src="images/hero-bg.jpg" alt="" aria-hidden="true" />
-      <div class="hero-scrim"></div>
-      <div class="hero-nav-bar" id="hero-nav-bar" aria-hidden="true"></div>
-
-      <!-- This is the whole trick: one element, morphing continuously with
-           scroll instead of swapping between a "big hero" version and a
-           "small nav" version. It starts centered and large, and scroll
-           progress alone drives it shrinking + traveling into the nav
-           corner, where it docks (position: fixed) and stays for the
-           rest of the page. -->
-      <div class="hero-morph-row">
-        <a class="hero-morph" id="hero-morph" href="#hero">
-          <img class="hero-avatar" src="images/profile.jpg" alt="Rishav Gautam" />
-          <span class="hero-morph-name">Rishav Gautam</span>
-        </a>
-      </div>
-
-      <!-- The only way into the dock transition — manual scrolling is
-           locked (see .scroll-locked in style.css / script.js) until
-           this is pressed, which then plays the exact same scroll-
-           driven animation a manual scroll would, just driven
-           programmatically instead of by wheel/trackpad input. -->
-      <button type="button" class="hero-scroll-btn" id="hero-scroll-btn" aria-label="Scroll down">
-        <span class="hero-scroll-chevron"></span>
-      </button>
-
-      <nav class="hero-nav" id="hero-nav">
-        <button class="nav-toggle" id="nav-toggle" aria-label="Toggle navigation" aria-expanded="false">
-          <span></span><span></span><span></span>
-        </button>
-        <ul class="nav-links" id="nav-links">
-          <li>
-            <a href="#hero" class="nav-link active" data-section="hero">
-              <svg class="nav-link-icon" viewBox="50.5 13.5 37 37" fill="none" aria-hidden="true">
-                <path d="M64.1472 15.5C57.7232 18.0813 52.5 23.6822 52.5 31.0283C52.5 35.6621 54.3408 40.1061 57.6173 43.3827C60.8939 46.6592 65.3379 48.5 69.9717 48.5C77.3178 48.5 82.9187 43.2768 85.5 36.8528C61.9783 41.2858 61.9233 24.9233 64.1472 15.5Z" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-              Home
-            </a>
-          </li>
-          <!-- About Me nav link removed for now — #about content isn't ready.
-          <li>
-            <a href="#about" class="nav-link" data-section="about">
-              <svg class="nav-link-icon" viewBox="292 15.5 37 37" fill="none" aria-hidden="true">
-                <path d="M310.5 20.6935C317.854 20.6935 323.806 26.6449 323.806 34C323.806 41.3539 317.855 47.3065 310.5 47.3065C303.146 47.3065 297.194 41.3551 297.194 34C297.194 26.6461 303.145 20.6935 310.5 20.6935ZM310.5 17.5C301.387 17.5 294 24.8873 294 34C294 43.1127 301.387 50.5 310.5 50.5C319.613 50.5 327 43.1127 327 34C327 24.8873 319.613 17.5 310.5 17.5ZM310.5 28.6774C307.56 28.6774 305.177 31.0604 305.177 34C305.177 36.9396 307.56 39.3226 310.5 39.3226C313.44 39.3226 315.823 36.9396 315.823 34C315.823 31.0604 313.44 28.6774 310.5 28.6774Z" fill="currentColor"/>
-              </svg>
-              About Me
-            </a>
-          </li>
-          -->
-
-          <li>
-            <a href="#projects" class="nav-link" data-section="projects">
-              <svg class="nav-link-icon" viewBox="552.214 15.5 37 37" fill="none" aria-hidden="true">
-                <path fill-rule="evenodd" clip-rule="evenodd" d="M556.966 33.8904C556.966 34.2191 556.992 34.5672 557.018 34.8959H561.098C562.406 34.8959 563.766 34.8959 564.997 34.5672C566.808 34.0902 568.42 33.059 570.108 31.9439L570.16 31.9182C570.714 31.5121 571.32 31.2156 571.971 31.0094C572.802 30.7838 573.66 30.7064 574.51 30.7064H583.901C583.598 29.4238 583.121 28.1863 582.438 27.052H558.777C557.591 29.1273 556.966 31.4992 556.966 33.8904ZM580.962 42.7334C576.077 48.4504 567.466 49.1594 561.749 44.2416C561.194 43.7646 560.692 43.2619 560.24 42.7334H580.962ZM579.377 36.8617C579.377 38.1701 578.294 39.2529 576.985 39.2529C575.677 39.2529 574.594 38.1701 574.594 36.8617C574.594 35.5533 575.677 34.4705 576.985 34.4705C578.294 34.4705 579.377 35.5533 579.377 36.8617ZM584.185 32.7561H574.491C573.834 32.7303 573.157 32.8076 572.525 32.9559C572.074 33.1041 571.642 33.3361 571.268 33.6133L571.217 33.6391L571.21 33.6455C569.477 34.7799 567.665 35.9594 565.526 36.5395C564.191 36.8939 562.831 36.9197 561.523 36.9197H557.321C557.624 38.2281 558.126 39.5172 558.803 40.6709H582.425C583.637 38.602 584.262 36.2365 584.236 33.8453C584.236 33.5166 584.217 33.1814 584.191 32.8334L584.185 32.7561ZM561.749 23.5135C567.491 18.6279 576.077 19.3047 580.962 25.0281H560.24C560.692 24.4996 561.194 23.9646 561.749 23.5135ZM570.714 50.5C579.828 50.5 587.214 43.1137 587.214 34C587.214 24.8863 579.828 17.5 570.714 17.5C561.6 17.5 554.214 24.8863 554.214 34C554.214 43.1137 561.6 50.5 570.714 50.5Z" fill="currentColor"/>
-              </svg>
-              Projects
-            </a>
-          </li>
-        </ul>
+  <header class="site-header">
+    <div class="wrap header-row">
+      <a class="wordmark" href="#top">Rishav Gautam</a>
+      <nav class="site-nav" aria-label="Sections">
+        <a href="#work">Work</a>
+        <a href="#about">About</a>
+        <a href="#contact">Contact</a>
       </nav>
+    </div>
+  </header>
+
+  <main id="top">
+
+    <!-- Hero: name, title line, intro, status. Headshot on the right (hide with ?showHeadshot=false). -->
+    <section class="hero wrap">
+      <div class="hero-text">
+        <p class="eyebrow"><span>Product Designer</span> <span class="sep">|</span> <span>UX Strategy</span> <span class="sep">|</span> <span>AI Native</span></p>
+        <h1 class="hero-name">Rishav Gautam</h1>
+        <p class="hero-intro">Design is my <em>sixth sense.</em></p>
+        <dl class="hero-meta">
+          <div><dt>Based in</dt><dd>San Francisco Bay Area</dd></div>
+          <div><dt>Open to</dt><dd>Full-Time Product Design roles</dd></div>
+        </dl>
+      </div>
+      <figure class="hero-portrait" data-setting="showHeadshot">
+        <img src="images/headshot.webp" width="1086" height="1448" alt="Portrait of Rishav Gautam in a black suit and tie" />
+      </figure>
     </section>
-  </div>
 
-  <!-- Lives in the same docked top-left corner as the avatar/name (see
-       .projects-nav-back-btn in style.css — positioned off var(--dock-top)/
-       var(--dock-side) directly, no JS math needed since it's a fixed
-       spot, not part of the avatar/name morph animation). Only
-       relevant — and only visible/clickable — while the Projects panel
-       is open; script.js's openProjects/closeProjects toggle
-       .is-visible and also shift the avatar/name dock target right to
-       make room for it. -->
-  <button type="button" class="projects-nav-back-btn" id="projects-nav-back-btn" aria-label="Back">
-    <span class="projects-back-chevron"></span>
-  </button>
+    <!-- I. Selected Work -->
+    <section class="section wrap" id="work" aria-labelledby="work-title">
+      <header class="section-head">
+        <span class="section-num">I.</span>
+        <h2 id="work-title">Selected Work</h2>
+      </header>
 
-  <!-- Embedded pixel-for-pixel in hero-bg.jpg (see remeasureStupaLight /
-       updateStupaLight in script.js) — sized and positioned by the same
-       object-fit:cover math as the background pan, recalculated every
-       scroll frame, so it scales and moves with the photo exactly, at
-       any viewport size or scroll position. -->
-  <div class="stupa-light" id="stupa-light" aria-hidden="true">
-    <div class="stupa-light-glow" id="stupa-light-glow"></div>
-    <!-- Bridges the core's hot white/yellow and the glow's soft amber
-         so center-to-edge reads as one continuous falloff instead of
-         two separate circles — sits between them in size (64px, vs.
-         28/160) and in paint order (after glow, before core). -->
-    <div class="stupa-light-inner" id="stupa-light-inner"></div>
-    <div class="stupa-light-core" id="stupa-light-core"></div>
-    <!-- Bloom comes first so near/far paint over it — wider (trapezoid,
-         not a point, at the apex) and more blurred than either, at low
-         opacity, reading as ambient spill around the defined shaft
-         rather than a third hard-edged wedge. See remeasureStupaLight()
-         in script.js for its geometry. -->
-    <div class="stupa-light-beam stupa-light-beam--bloom" id="stupa-light-beam-bloom" aria-hidden="true"></div>
-    <!-- Two layers, not one — a near (sharper) wedge that dominates
-         close to the glow and a far (heavier blur) wedge that fades
-         in and takes over toward the card, cross-faded via mask-image
-         in style.css. Composited together this reads as blur that
-         increases with distance, instead of one uniformly-blurred
-         hard-edged shape. See remeasureStupaLight() in script.js. -->
-    <div class="stupa-light-beam stupa-light-beam--near" id="stupa-light-beam" aria-hidden="true"></div>
-    <div class="stupa-light-beam stupa-light-beam--far" id="stupa-light-beam-far" aria-hidden="true"></div>
-  </div>
-
-  <!-- Its own top-level position:fixed element, deliberately NOT nested
-       inside #stupa-light — that element's fixed position + JS transform
-       make it a stacking context, which would cap this card's
-       backdrop-filter to only sampling #stupa-light's own (near-empty)
-       subtree instead of the real photo behind it. Position is driven
-       directly from script.js instead. -->
-  <div class="hero-spotlight-card" id="hero-spotlight-card">
-    <div class="hero-spotlight-content">
-      <!-- Mobile's copy of the WHOLE sentence — this line and the
-           highlight line below together — is split into individual
-           .hsl-word spans so every word unravels on its own via
-           clip-path, one continuous typed-in sentence rather than the
-           lead-in and the highlight animating differently. On desktop
-           these same spans render as plain inline text (no CSS keys off
-           .hsl-word/.hsl-punct outside the mobile block in style.css) —
-           desktop's own reveal is untouched, still just the whole
-           highlight paragraph fading in as one block via the shared
-           .is-revealed rule further up in style.css. --i drives
-           each word's stagger (transition-delay: calc(var(--i) * step))
-           instead of one class per word, and is a single sequence
-           spanning both <p> elements (0 through 12) so the highlight
-           words continue the same cadence instead of restarting. Commas
-           and the period are pulled out into their own .hsl-punct spans
-           (see style.css) that wait for every .hsl-word above to finish
-           before coming in as their own beat, rather than being glued
-           to their preceding word's own timing. --p sequences those. -->
-      <p class="hero-spotlight-line"><span class="hsl-lead hsl-lead--desktop">I am a</span><span class="hsl-lead hsl-lead--mobile"><span class="hsl-word" style="--i:0">I</span> <span class="hsl-word" style="--i:1">am</span> <span class="hsl-word" style="--i:2">a</span></span> <span class="hsl-word" style="--i:3">creative</span> <span class="hsl-word" style="--i:4">designer</span> <span class="hsl-word" style="--i:5">at</span> <span class="hsl-word" style="--i:6">the</span> <span class="hsl-word" style="--i:7">intersection</span> <span class="hsl-word" style="--i:8">of</span></p>
-      <p class="hero-spotlight-highlight" id="hero-spotlight-highlight"><span class="hsl-word" style="--i:9">Intelligence</span><span class="hsl-punct" style="--p:0">,</span> <span class="hsl-word" style="--i:10">Behavior</span><span class="hsl-punct" style="--p:1">,</span> <span class="hsl-word" style="--i:11">&amp;</span> <span class="hsl-word" style="--i:12">Culture</span><span class="hsl-punct" style="--p:2">.</span></p>
-
-      <div class="hero-spotlight-actions" id="hero-spotlight-actions">
-        <a href="#projects" class="hero-spotlight-btn" id="hero-spotlight-projects-btn" data-section="projects">
-          <svg class="hero-spotlight-btn-projects-icon" viewBox="552.214 15.5 37 37" fill="none" aria-hidden="true">
-            <path fill-rule="evenodd" clip-rule="evenodd" d="M556.966 33.8904C556.966 34.2191 556.992 34.5672 557.018 34.8959H561.098C562.406 34.8959 563.766 34.8959 564.997 34.5672C566.808 34.0902 568.42 33.059 570.108 31.9439L570.16 31.9182C570.714 31.5121 571.32 31.2156 571.971 31.0094C572.802 30.7838 573.66 30.7064 574.51 30.7064H583.901C583.598 29.4238 583.121 28.1863 582.438 27.052H558.777C557.591 29.1273 556.966 31.4992 556.966 33.8904ZM580.962 42.7334C576.077 48.4504 567.466 49.1594 561.749 44.2416C561.194 43.7646 560.692 43.2619 560.24 42.7334H580.962ZM579.377 36.8617C579.377 38.1701 578.294 39.2529 576.985 39.2529C575.677 39.2529 574.594 38.1701 574.594 36.8617C574.594 35.5533 575.677 34.4705 576.985 34.4705C578.294 34.4705 579.377 35.5533 579.377 36.8617ZM584.185 32.7561H574.491C573.834 32.7303 573.157 32.8076 572.525 32.9559C572.074 33.1041 571.642 33.3361 571.268 33.6133L571.217 33.6391L571.21 33.6455C569.477 34.7799 567.665 35.9594 565.526 36.5395C564.191 36.8939 562.831 36.9197 561.523 36.9197H557.321C557.624 38.2281 558.126 39.5172 558.803 40.6709H582.425C583.637 38.602 584.262 36.2365 584.236 33.8453C584.236 33.5166 584.217 33.1814 584.191 32.8334L584.185 32.7561ZM561.749 23.5135C567.491 18.6279 576.077 19.3047 580.962 25.0281H560.24C560.692 24.4996 561.194 23.9646 561.749 23.5135ZM570.714 50.5C579.828 50.5 587.214 43.1137 587.214 34C587.214 24.8863 579.828 17.5 570.714 17.5C561.6 17.5 554.214 24.8863 554.214 34C554.214 43.1137 561.6 50.5 570.714 50.5Z" fill="currentColor"/>
-          </svg>
-          <span class="hsb-label hsb-label--desktop">View My Projects</span>
-          <span class="hsb-label hsb-label--mobile">My Projects</span>
-          <svg class="hero-spotlight-btn-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            <path d="M5 12H19M19 12L13 6M19 12L13 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
+      <article class="project">
+        <a class="project-cover" href="https://rishavux.github.io/ez-case-study/" target="_blank" rel="noopener" aria-label="EZ Brow &amp; Beauty case study">
+          <img src="images/cover-ez-brow.png" width="900" height="620" alt="EZ Brow &amp; Beauty mobile screens: services menu, home, and a facial detail card" loading="lazy" />
         </a>
-      </div>
-
-      <div class="hero-spotlight-meta" id="hero-spotlight-meta">
-        <div class="hero-spotlight-chip hero-spotlight-chip--blue">
-          <img class="hero-spotlight-chip-icon" src="images/role-icon.svg" alt="" aria-hidden="true" />
-          <div class="hero-spotlight-chip-text">
-            <p class="hero-spotlight-chip-line">My work spans</p>
-            <p class="hero-spotlight-chip-line hero-spotlight-chip-line--bold">UI / UX Design</p>
-          </div>
-        </div>
-        <div class="hero-spotlight-chip hero-spotlight-chip--green">
-          <img class="hero-spotlight-chip-icon" src="images/availability-icon.svg" alt="" aria-hidden="true" />
-          <div class="hero-spotlight-chip-text">
-            <p class="hero-spotlight-chip-line">Currently looking for</p>
-            <p class="hero-spotlight-chip-line hero-spotlight-chip-line--bold">Full-Time Roles</p>
-          </div>
-        </div>
-        <div class="hero-spotlight-chip hero-spotlight-chip--red">
-          <img class="hero-spotlight-chip-icon" src="images/location-icon.svg" alt="" aria-hidden="true" />
-          <div class="hero-spotlight-chip-text">
-            <p class="hero-spotlight-chip-line">I am located in</p>
-            <p class="hero-spotlight-chip-line hero-spotlight-chip-line--bold">San Francisco</p>
-          </div>
-        </div>
-      </div>
-
-    </div>
-  </div>
-
-  <!-- Mobile-only stand-in for the role chip above — desktop's copy
-       lives inside #hero-spotlight-meta and only ever appears as part
-       of the docked reveal there (see style.css's mobile block). This
-       one shows immediately, between the name and the down-arrow
-       button, positioned by script.js's remeasureHeroMorph, then fades
-       out once docked so the "usual" docked one (inside the card) can
-       take over. Shares hero-spotlight-chip/--blue for its visual
-       styling (background, padding, icon/text sizing, etc.) but keeps
-       its own position/visibility via .mobile-role-chip. -->
-  <div class="mobile-role-chip hero-spotlight-chip hero-spotlight-chip--blue" id="mobile-role-chip">
-    <img class="hero-spotlight-chip-icon" src="images/role-icon.svg" alt="" aria-hidden="true" />
-    <div class="hero-spotlight-chip-text">
-      <p class="hero-spotlight-chip-line hero-spotlight-chip-line--bold">UI / UX Designer</p>
-    </div>
-  </div>
-
-  <section class="about" id="about" hidden>
-    <div class="about-intro" data-reveal="left">
-      <div class="about-portrait-wrap">
-        <img class="about-portrait" src="images/about-portrait.jpg" alt="Rishav Gautam trekking above a glacial lake in the Nepal Himalayas" />
-        <img class="about-inset" src="images/about-stupa.jpg" alt="Boudhanath Stupa lit up at night under a full moon" />
-      </div>
-      <div class="about-copy" data-reveal="right">
-        <p class="eyebrow accent-saffron">About Me</p>
-        <h2>Grown in the Himalayas, working in the Bay.</h2>
-        <p>I grew up in Kathmandu, in the shadow of the Himalayas, and now design products from the Bay Area. Every project I take on starts the way a mountain does — from the ground up, one honest structural decision at a time.</p>
-        <p>I care about interfaces that hold up under real use: a booking flow for a family-run beauty studio, an AI-assisted tool for property teams, systems that stay legible no matter how much gets added to them later. Outside of work I'm usually planning the next trek, the next temple, or the next place that looks nothing like home and somehow still feels like it.</p>
-        <div class="about-tags">
-          <span class="tag accent-red">UX Design</span>
-          <span class="tag accent-saffron">Product Thinking</span>
-          <span class="tag accent-green">Systems</span>
-          <span class="tag accent-blue">Travel</span>
-        </div>
-      </div>
-    </div>
-
-    <figure class="journey-band" data-reveal="clip">
-      <img src="images/isomorphism-journey.jpg" alt="A single blended skyline showing Boudhanath Stupa and the Himalayas by night transitioning into the Golden Gate Bridge and San Francisco by day" loading="lazy" />
-      <figcaption>Kathmandu → San Francisco. Same sky, different mountains.</figcaption>
-    </figure>
-  </section>
-
-  <div class="travel-pin" id="travel-pin" hidden>
-    <div class="travel-viewport">
-      <h3 class="travel-heading">Wherever I end up, I go looking for the view.</h3>
-      <div class="travel-track" id="travel-track">
-        <figure class="travel-item accent-red">
-          <img src="images/travel-nachi.jpg" alt="Nachi Falls and a three-story pagoda in the mist, Japan" loading="lazy" />
-          <figcaption>Nachi, Japan</figcaption>
-        </figure>
-        <figure class="travel-item accent-blue">
-          <img src="images/travel-kiyomizu.jpg" alt="View toward Kiyomizu-dera pagoda above Kyoto" loading="lazy" />
-          <figcaption>Kyoto, Japan</figcaption>
-        </figure>
-        <figure class="travel-item accent-green">
-          <img src="images/travel-waterfall.jpg" alt="Waterfalls through pine trees, Northern California" loading="lazy" />
-          <figcaption>Burney Falls, CA</figcaption>
-        </figure>
-        <figure class="travel-item accent-saffron">
-          <img src="images/travel-yosemite.jpg" alt="Yosemite Valley lit gold at sunset" loading="lazy" />
-          <figcaption>Yosemite, CA</figcaption>
-        </figure>
-        <figure class="travel-item accent-blue">
-          <img src="images/travel-seashore.jpg" alt="Rocky coastline and sea stacks along the Japanese coast" loading="lazy" />
-          <figcaption>San'in Coast, Japan</figcaption>
-        </figure>
-        <figure class="travel-item accent-saffron">
-          <img src="images/about-flight.jpg" alt="View from an airplane window above the clouds and mountains" loading="lazy" />
-          <figcaption>Somewhere in between</figcaption>
-        </figure>
-        <figure class="travel-item accent-red">
-          <img src="images/travel-sunset.jpg" alt="A glowing cloud reflected on a calm sea at sunset" loading="lazy" />
-          <figcaption>Somewhere, at dusk</figcaption>
-        </figure>
-      </div>
-    </div>
-  </div>
-
-  <section class="projects" id="projects" aria-hidden="true">
-    <div class="project-grid">
-      <a class="project-card accent-red" href="https://rishavux.github.io/ez-case-study/" target="_blank" rel="noopener" data-reveal="left">
-        <div class="project-thumb project-thumb--ez">
-          <div class="ez-thumb-logo">
-            <svg width="82" height="58" viewBox="0 0 82 58" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="EZ Brow and Beauty logo">
-              <path d="M8.84082 17.0445C25.7066 -3.49783 34.117 -1.26283 36.2139 2.42243C38.9338 16.8303 21.4787 21.1459 12.4111 21.5025C6.29061 31.7736 8.38766 38.2646 10.2012 40.2261C18.4983 52.0656 40.9739 32.7953 51.1748 21.6802C41.238 35.257 32.6825 43.3118 24.9707 46.3297C13.1545 50.9537 0.000338018 50.5682 0 40.2261C0.40804 29.8124 6.06384 20.4326 8.84082 17.0445ZM32.1338 4.02692C27.0333 0.638859 17.512 11.6951 13.6016 17.5797C22.6125 22.2159 37.7428 7.75283 32.1338 4.02692Z" fill="#8D2318"/>
-              <path d="M76.2808 24.9926C55.366 10.1164 38.3275 20.976 32.4226 28.2654C27.6224 27.0753 28.8987 24.1992 30.1368 22.9099C47.5086 5.41553 68.1377 17.009 76.2808 24.9926Z" fill="#1C1C1C"/>
-              <path d="M47.7087 34.9596C61.7662 22.7017 70.995 23.6042 73.8522 25.5876C56.2517 25.5876 46.5658 45.2242 46.5658 45.2242C67.4806 42.011 78.7094 49.7367 81.7095 54.0012C61.5947 42.5762 45.3276 49.2408 39.7085 54.0012C33.3083 60.5467 31.8035 55.5384 31.8511 52.216C35.6226 46.9796 43.9943 38.5299 47.7087 34.9596Z" fill="#1C1C1C"/>
-            </svg>
-            <span class="ez-thumb-title">Brow <span class="ez-thumb-amp">&amp;</span> Beauty</span>
-          </div>
-          <span class="project-view-icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
-              <polyline points="15 3 21 3 21 9"/>
-              <line x1="10" y1="14" x2="21" y2="3"/>
-            </svg>
-          </span>
-        </div>
         <div class="project-body">
-          <div class="project-info">
-            <p class="project-role">Creative Director</p>
-            <p class="project-desc">A complete brand and design system, from color and typography to a fully redesigned mobile booking experience.</p>
+          <p class="project-index">01</p>
+          <h3 class="project-title">EZ Brow &amp; Beauty</h3>
+          <p class="project-kind">Brand and UX system for a family-run salon</p>
+          <dl class="project-facts">
+            <div><dt>Role</dt><dd>Design Lead</dd></div>
+            <div><dt>Year</dt><dd>2026</dd></div>
+            <div><dt>Team</dt><dd>Solo</dd></div>
+          </dl>
+          <div class="project-text">
+            <h4>Problem</h4>
+            <p>A salon that has served loyal clients for more than a decade had no digital presence equal to its standing. Its website drew little traffic, and its services sat in a flat menu with no hierarchy and no sense of value.</p>
+            <h4>What I did</h4>
+            <p>Wrote the brief from nothing, through market research and direct observation of the business. Built a complete brand and UX system (color, type, voice, information architecture, 30+ components) and redesigned the mobile service menu and cart, while keeping the booking flow returning clients already trust.</p>
           </div>
-          <img class="project-mockup" src="images/case-study-thumbnail.png" alt="EZ Brow &amp; Beauty shown across the services, home, and service detail screens" loading="lazy" />
+          <a class="text-link" href="https://rishavux.github.io/ez-case-study/" target="_blank" rel="noopener">Read the case study <span aria-hidden="true">→</span></a>
         </div>
-      </a>
-      <a class="project-card accent-blue" href="https://rishavux.github.io/pp-case-study/" target="_blank" rel="noopener" data-reveal="right">
-        <div class="project-thumb project-thumb--pp">
-          <div class="pp-thumb-logo">
-            <svg class="pp-thumb-icon" viewBox="0 0 73.3832 75.4227" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Property Pixel icon">
-              <path fill-rule="evenodd" clip-rule="evenodd" d="M48.9221 38.7312V75.4227H73.3832V31.6221L36.6917 7.16098L0 31.6221V75.4227H24.4613V38.7312H36.6917H48.9221Z" fill="#189293"/>
-              <path d="M18.9208 0H0.00170898V18.9191H18.9208V0Z" fill="#189293"/>
-            </svg>
-            <svg class="pp-thumb-text" viewBox="87.2341 31.2969 469.8489 44.1224" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="PropertyPixel">
-              <path d="M398.3 75.2409V31.2969H414.778C418.154 31.9263 420.987 32.7644 423.275 33.1851C425.578 34.4439 427.317 36.1748 428.49 38.3777C429.677 40.5663 430.27 43.0553 430.27 45.8447C430.27 48.6627 429.677 51.166 428.49 53.3546C427.302 55.5432 425.55 57.2669 423.232 58.5259C420.915 59.7704 418.062 60.3926 414.671 60.3926H403.749V53.8481H413.598C415.573 53.8481 417.189 53.5048 418.448 52.8182C419.706 52.1316 420.636 51.1874 421.237 49.9859C421.852 48.7843 422.16 47.4039 422.16 45.8447C422.16 44.2855 421.852 42.9123 421.237 41.725C420.636 40.5377 419.699 39.6151 418.426 38.957C417.167 38.2847 415.544 37.9485 413.555 37.9485H406.26V75.2409H398.3ZM444.541 31.2969V75.2409H436.58V31.2969H444.541ZM459.209 31.2969L468.886 47.3896H469.229L478.949 31.2969H488.026L474.486 53.2688L488.24 75.2409H479.013L469.229 59.255H468.886L459.102 75.2409H449.918L463.801 53.2688L450.09 31.2969H459.209ZM493.671 75.2409V31.2969H522.251V37.97H501.631V49.9H520.771V56.5731H501.631V68.5677H520.771V75.2409H493.671ZM529.768 75.2409V31.2969H537.729V68.5677H557.083V75.2409H529.768Z" fill="#189293"/>
-              <path d="M87.2341 74.8363V32.1953H103.225C106.5 32.1953 109.248 32.8061 111.47 34.0275C113.704 35.249 115.391 36.9286 116.529 39.0661C117.681 41.1899 118.257 43.6051 118.257 46.3117C118.257 49.0462 117.681 51.4753 116.529 53.599C115.377 55.7227 113.677 57.3953 111.428 58.6169C109.179 59.8245 106.41 60.4283 103.12 60.4283H92.5228V54.0779H102.08C103.995 54.0779 105.564 53.7448 106.785 53.0784C108.006 52.4122 108.908 51.4961 109.491 50.3301C110.088 49.1642 110.387 47.8247 110.387 46.3117C110.387 44.7988 110.088 43.4663 109.491 42.3142C108.908 41.1621 108 40.2668 106.764 39.6283C105.543 38.9759 103.967 38.6497 102.038 38.6497H94.9588V74.8363H87.2341ZM124.38 74.8363V32.1953H140.371C143.646 32.1953 146.395 32.7644 148.616 33.9026C150.851 35.0408 152.537 36.637 153.675 38.6914C154.827 40.7318 155.403 43.1123 155.403 45.8329C155.403 48.5673 154.82 50.9409 153.654 52.9536C152.502 54.9523 150.802 56.5 148.553 57.5965C146.304 58.6795 143.542 59.2207 140.267 59.2207H128.877V52.8078H139.225C141.141 52.8078 142.709 52.5441 143.931 52.0166C145.153 51.4753 146.055 50.691 146.638 49.6639C147.235 48.6228 147.533 47.3458 147.533 45.8329C147.533 44.3199 147.235 43.029 146.638 41.9602C146.041 40.8775 145.132 40.0586 143.91 39.5034C142.688 38.9343 141.113 38.6497 139.184 38.6497H132.105V74.8363H124.38ZM146.409 55.5145L156.965 74.8363H148.345L137.976 55.5145H146.409ZM200.029 53.5157C200.029 58.1101 199.168 62.0452 197.447 65.3212C195.74 68.5831 193.408 71.0817 190.451 72.8164C187.509 74.5516 184.171 75.4193 180.437 75.4193C176.703 75.4193 173.358 74.5516 170.401 72.8164C167.458 71.0676 165.127 68.5622 163.406 65.3003C161.698 62.0243 160.844 58.096 160.844 53.5157C160.844 48.9213 161.698 44.9931 163.406 41.7312C165.127 38.4554 167.458 35.95 170.401 34.2149C173.358 32.4799 176.703 31.6123 180.437 31.6123C184.171 31.6123 187.509 32.4799 190.451 34.2149C193.408 35.95 195.74 38.4554 197.447 41.7312C199.168 44.9931 200.029 48.9213 200.029 53.5157ZM192.263 53.5157C192.263 50.2816 191.756 47.554 190.743 45.3332C189.743 43.0984 188.355 41.4119 186.579 40.2738C184.802 39.1217 182.755 38.5456 180.437 38.5456C178.119 38.5456 176.072 39.1217 174.295 40.2738C172.518 41.4119 171.123 43.0984 170.11 45.3332C169.11 47.554 168.611 50.2816 168.611 53.5157C168.611 56.7499 169.11 59.4846 170.11 61.7193C171.123 63.94 172.518 65.6262 174.295 66.7785C176.072 67.9167 178.119 68.4856 180.437 68.4856C182.755 68.4856 184.802 67.9167 186.579 66.7785C188.355 65.6262 189.743 63.94 190.743 61.7193C191.756 59.4846 192.263 56.7499 192.263 53.5157ZM206.746 74.8363V32.1953H222.736C226.012 32.1953 228.76 32.8061 230.981 34.0275C233.215 35.249 234.902 36.9286 236.04 39.0661C237.192 41.1899 237.768 43.6051 237.768 46.3117C237.768 49.0462 237.192 51.4753 236.04 53.599C234.888 55.7227 233.188 57.3953 230.939 58.6169C228.691 59.8245 225.921 60.4283 222.632 60.4283H212.034V54.0779H221.591C223.506 54.0779 225.075 53.7448 226.296 53.0784C227.517 52.4122 228.42 51.4961 229.003 50.3301C229.599 49.1642 229.898 47.8247 229.898 46.3117C229.898 44.7988 229.599 43.4663 229.003 42.3142C228.42 41.1621 227.511 40.2668 226.276 39.6283C225.054 38.9759 223.478 38.6497 221.549 38.6497H214.47V74.8363H206.746ZM243.891 74.8363V32.1953H271.624V38.6705H251.616V50.2468H270.188V56.7221H251.616V68.361H271.791V74.8363H243.891ZM278.919 74.8363V32.1953H294.909C298.185 32.1953 300.933 32.7644 303.154 33.9026C305.389 35.0408 307.075 36.637 308.214 38.6914C309.366 40.7318 309.942 43.1123 309.942 45.8329C309.942 48.5673 309.359 50.9409 308.193 52.9536C307.041 54.9523 305.341 56.5 303.092 57.5965C300.843 58.6795 298.081 59.2207 294.805 59.2207H283.416V52.8078H293.764C295.68 52.8078 297.248 52.5441 298.47 52.0166C299.691 51.4753 300.593 50.691 301.176 49.6639C301.773 48.6228 302.071 47.3458 302.071 45.8329C302.071 44.3199 301.773 43.029 301.176 41.9602C300.58 40.8775 299.67 40.0586 298.449 39.5034C297.228 38.9343 295.652 38.6497 293.723 38.6497H286.644V74.8363H278.919ZM300.947 55.5145L311.503 74.8363H302.884L292.515 55.5145H300.947ZM314.592 38.6705V32.1953H348.613V38.6705H335.434V74.8363H327.772V38.6705H314.592ZM351.671 32.1953H360.394L370.825 51.0589H371.241L381.673 32.1953H390.397L374.886 58.9293V74.8363H367.182V58.9293L351.671 32.1953Z" fill="black"/>
-            </svg>
-          </div>
-          <span class="project-view-icon" aria-hidden="true">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
-              <polyline points="15 3 21 3 21 9"/>
-              <line x1="10" y1="14" x2="21" y2="3"/>
-            </svg>
-          </span>
-        </div>
+      </article>
+
+      <article class="project">
+        <a class="project-cover" href="https://rishavux.github.io/pp-case-study/" target="_blank" rel="noopener" aria-label="PropertyPixel case study">
+          <img src="images/cover-propertypixel.webp" width="1600" height="875" alt="PropertyPixel studio on desktop, the marketing site on a laptop, and the mobile site" loading="lazy" />
+        </a>
         <div class="project-body">
-          <div class="project-info">
-            <p class="project-role">Sole UX Designer</p>
-            <p class="project-desc">UX audit and redesign for an AI tool that turns property photos into listing-ready content.</p>
+          <p class="project-index">02</p>
+          <h3 class="project-title">PropertyPixel</h3>
+          <p class="project-kind">UX audit and redesign of an AI-native SaaS product</p>
+          <dl class="project-facts">
+            <div><dt>Role</dt><dd>UX Designer</dd></div>
+            <div><dt>Year</dt><dd>2026</dd></div>
+            <div><dt>Team</dt><dd>Solo</dd></div>
+          </dl>
+          <div class="project-text">
+            <h4>Problem</h4>
+            <p>PropertyPixel turns property photos into listing-ready content. It was built by a solo founder, with little usage data and no design review. The landing page hid its proof, and the core studio had to handle batch work without overwhelming the user.</p>
+            <h4>What I did</h4>
+            <p>Audited the live product through PostHog session recordings, competitor benchmarks and usability heuristics. Made nine interface decisions across the landing page, studio, billing and demo: visible proof, distinct calls to action, labeled controls, clear selection and legible usage.</p>
           </div>
-          <img class="project-mockup" src="images/pp-mobile-mockup.webp" alt="Property Pixel shown across the desktop app, marketing site, and mobile" loading="lazy" />
+          <a class="text-link" href="https://rishavux.github.io/pp-case-study/" target="_blank" rel="noopener">Read the case study <span aria-hidden="true">→</span></a>
         </div>
-      </a>
+      </article>
+    </section>
+
+    <!-- II. About -->
+    <section class="section wrap" id="about" aria-labelledby="about-title">
+      <header class="section-head">
+        <span class="section-num">II.</span>
+        <h2 id="about-title">About</h2>
+      </header>
+      <div class="about-grid">
+        <p class="about-lead">Born in Nepal. Raised in California.</p>
+        <div class="about-body">
+          <p>Double major in Communications and UX Design.</p>
+          <p>I care about solving business problems, with design as the medium.</p>
+          <dl class="about-facts" data-setting="showSkills">
+            <div><dt>Practice</dt><dd>Figma, User Research, Design Systems, Branding &amp; Identity, Storytelling, AI Prototyping</dd></div>
+          </dl>
+        </div>
+      </div>
+    </section>
+
+    <!-- III. Contact -->
+    <section class="section wrap" id="contact" aria-labelledby="contact-title">
+      <header class="section-head">
+        <span class="section-num">III.</span>
+        <h2 id="contact-title">Contact</h2>
+      </header>
+      <p class="contact-lead">Open to full-time product design roles.</p>
+      <ul class="contact-list">
+        <li><span class="contact-label">Email</span><a href="mailto:rishav.ux@gmail.com">rishav.ux@gmail.com</a></li>
+        <li><span class="contact-label">LinkedIn</span><a href="https://www.linkedin.com/in/rish510/" target="_blank" rel="noopener">linkedin.com/in/rish510</a></li>
+        <li><span class="contact-label">GitHub</span><a href="https://github.com/rishavux" target="_blank" rel="noopener">github.com/rishavux</a></li>
+        <li><span class="contact-label">Résumé</span><a href="Rishav-Gautam-Resume.pdf" target="_blank" rel="noopener">Download PDF</a></li>
+      </ul>
+    </section>
+
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap footer-row">
+      <span>© 2026 Rishav Gautam</span>
+      <span>San Francisco Bay Area</span>
     </div>
-  </section>
+  </footer>
 
-</main>
-
-<footer class="site-footer" hidden>
-  <span class="eyebrow accent-saffron footer-eyebrow">Let's talk</span>
-  <a class="footer-email" href="mailto:rishav.ux@gmail.com">rishav.ux@gmail.com</a>
-  <p class="footer-note">Rishav Gautam — Kathmandu ↔ Bay Area</p>
-</footer>
-
-<script src="script.js"></script>
+  <script src="script.js"></script>
 </body>
 </html>
