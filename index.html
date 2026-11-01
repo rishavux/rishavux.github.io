@@ -9,16 +9,20 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Libre+Caslon+Text:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
+  <script>document.documentElement.classList.add('js')</script>
 </head>
 <body>
 
   <header class="site-header">
     <div class="wrap header-row">
       <a class="wordmark" href="#top">Rishav Gautam</a>
-      <nav class="site-nav" aria-label="Sections">
+      <!-- On phones the nav folds behind this button (script.js) -->
+      <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="site-nav">Menu</button>
+      <nav class="site-nav" id="site-nav" aria-label="Sections">
         <a href="#work">Work</a>
         <a href="#about">About</a>
         <a href="#contact">Contact</a>
+        <a href="Rishav-Gautam-Resume.pdf" target="_blank" rel="noopener">Résumé</a>
       </nav>
     </div>
   </header>
@@ -107,7 +111,17 @@
           <p>Double major in Communications and UX Design.</p>
           <p>I care about solving business problems, with design as the medium.</p>
           <dl class="about-facts" data-setting="showSkills">
-            <div><dt>Practice</dt><dd>Figma, User Research, Design Systems, Branding &amp; Identity, Storytelling, AI Prototyping</dd></div>
+            <dt>Practice</dt>
+            <dd>
+              <ul class="skills">
+                <li>Figma</li>
+                <li>User Research</li>
+                <li>Design Systems</li>
+                <li>Branding &amp; Identity</li>
+                <li>Storytelling</li>
+                <li>AI Prototyping</li>
+              </ul>
+            </dd>
           </dl>
         </div>
       </div>
@@ -120,8 +134,11 @@
         <h2 id="contact-title">Contact</h2>
       </header>
       <p class="contact-lead">Open to full-time product design roles.</p>
+      <div class="contact-primary">
+        <span class="contact-label">Email</span>
+        <a class="contact-email" href="mailto:rishav.ux@gmail.com">rishav.ux@gmail.com</a>
+      </div>
       <ul class="contact-list">
-        <li><span class="contact-label">Email</span><a href="mailto:rishav.ux@gmail.com">rishav.ux@gmail.com</a></li>
         <li><span class="contact-label">LinkedIn</span><a href="https://www.linkedin.com/in/rish510/" target="_blank" rel="noopener">linkedin.com/in/rish510</a></li>
         <li><span class="contact-label">GitHub</span><a href="https://github.com/rishavux" target="_blank" rel="noopener">github.com/rishavux</a></li>
         <li><span class="contact-label">Résumé</span><a href="Rishav-Gautam-Resume.pdf" target="_blank" rel="noopener">Download PDF</a></li>
@@ -134,6 +151,7 @@
     <div class="wrap footer-row">
       <span>© 2026 Rishav Gautam</span>
       <span>San Francisco Bay Area</span>
+      <a class="back-to-top" href="#top">Back to top <span aria-hidden="true">↑</span></a>
     </div>
   </footer>
 
