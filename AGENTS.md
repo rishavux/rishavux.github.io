@@ -27,6 +27,12 @@ A one-page portfolio to land a first full-time product design role. Live at http
 | `Rishav-Gautam-Resume.pdf` | Résumé, linked from Contact. Copied from `Desktop/Resume 2026 New.pdf`; replace this file when the résumé changes. Note: it includes a phone number. |
 | `tools/sync-preview.sh`, `tools/serve.py` | Preview. The browser pane can't read Documents, so `sync-preview.sh` mirrors this folder (`rishavux.github.io` now) to `~/.portfolio-preview/site` and `serve.py` serves it uncached on port 5176 (config "portfolio" in `Documents/.claude/launch.json`). Run the sync after every edit, then reload http://localhost:5176/. |
 
+## Figma
+
+Figma file "Portfolio v1 — Desktop, Tablet, Mobile": https://www.figma.com/design/7DY8xrAAFjf5SLpd9mpfWf
+
+Page "Portfolio v1" holds three frames side by side: Desktop — 1440 (`1:2`), Tablet — 768 (`2:2`), Mobile — 375 (`3:2`). They are editable layers (not components, no variables or styles), captured from this site on 2026-10-31 with the Figma MCP `html_to_figma` tool: one self-contained HTML per width, with images inlined as base64 and each width's `clamp()` and `@media` rules resolved in advance. The file is a snapshot and does not update with the site; capture again after site changes.
+
 ## Page content
 
 - **Hero:** eyebrow "Product Designer | UX Strategy | AI Native"; name; intro "Design is my *sixth sense.*" (the gold word on the page); Based in San Francisco Bay Area; Open to Full-Time Product Design roles; headshot on the right (above the text on phones).
@@ -38,6 +44,7 @@ A one-page portfolio to land a first full-time product design role. Live at http
 
 - 2026-10-31: v1 built and checked at desktop (1440px) and phone (375px) widths.
 - 2026-10-31: v1 replaced the old site at rishavux.github.io. Old site, plus its last uncommitted edits, saved on branch `old-site`.
+- 2026-10-31: Desktop, tablet and mobile versions captured into Figma (see Figma).
 
 ## Decisions
 
