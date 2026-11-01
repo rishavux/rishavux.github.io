@@ -40,3 +40,16 @@ const spy = new IntersectionObserver((entries) => {
   }
 }, { rootMargin: '-50% 0px -50% 0px' });
 document.querySelectorAll('.hero, main > section[id]').forEach((s) => spy.observe(s));
+
+// Scroll reveal: each block fades up once as it enters the screen. Skipped for reduced motion.
+if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
+  const reveal = new IntersectionObserver((entries) => {
+    for (const { target, isIntersecting } of entries) {
+      if (!isIntersecting) continue;
+      target.classList.add('is-visible');
+      reveal.unobserve(target);
+    }
+  }, { rootMargin: '0px 0px -10% 0px' });
+  document.querySelectorAll('.section-head, .project, .about-grid, .contact-lead, .contact-primary, .contact-list')
+    .forEach((el) => { el.classList.add('reveal'); reveal.observe(el); });
+}
