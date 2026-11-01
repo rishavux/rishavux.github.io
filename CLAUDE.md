@@ -35,7 +35,7 @@ Page "Portfolio v1" holds three frames side by side: Desktop — 1440 (`1:2`), T
 
 ## Page content
 
-- **Hero:** eyebrow "Product Designer | UX Strategy | AI Native"; name; intro "Design is my *sixth sense.*" (the gold word on the page); Based in San Francisco Bay Area; Open to Full-Time Product Design roles; headshot on the right (above the text on phones).
+- **Hero:** on a 12-column grid, name block on 7 columns, portrait on 5; at least 90% of the screen tall on desktop, so the first screen shows only the hero. Eyebrow "Product Designer | UX Strategy | AI Native" with gold dividers; name in the display size; intro "Design is my *sixth sense.*" (italic, no gold); a short gold rule; Based in San Francisco Bay Area; Open to Full-Time Product Design roles, with a gold dot. Portrait 4:5 with a fade into the black at the bottom and the signature offset gold frame behind it (`--frame-offset`, 18px; 12px on tablet and phone). At 1024px and below the hero stacks: name first, then the portrait full width (3:2 crop, head to tie knot, on tablet; 4:5 on phones).
 - **I. Selected Work:** 01 EZ Brow & Beauty (Design Lead, 2026, Solo) → rishavux.github.io/ez-case-study; 02 PropertyPixel (UX Designer, 2026, Solo) → rishavux.github.io/pp-case-study. Each: cover, facts, Problem, What I did, link. No outcomes, by request. Problem / What I did copy drafted by Claude from the case studies; Rishav will edit.
 - **II. About:** "Born in Nepal. Raised in California." Double major, business problems with design as the medium. "Practice" skills line from the résumé (setting `showSkills`).
 - **III. Contact:** email, LinkedIn, GitHub, résumé PDF.
@@ -45,11 +45,13 @@ Page "Portfolio v1" holds three frames side by side: Desktop — 1440 (`1:2`), T
 - 2026-10-31: v1 built and checked at desktop (1440px) and phone (375px) widths.
 - 2026-10-31: v1 replaced the old site at rishavux.github.io. Old site, plus its last uncommitted edits, saved on branch `old-site`.
 - 2026-10-31: Desktop, tablet and mobile versions captured into Figma (see Figma).
-- 2026-10-31: Design improvements under way on branch `design-improvements`, following Rishav's PORTFOLIO-DESIGN-IMPROVEMENTS brief in 6 phases, one at a time, with Rishav's review after each. `main` (the live site) is unchanged until the work is approved and merged. Phase 1 (foundations) done: type scale, spacing scale, 12px minimum text, muted text raised to ink/300, 2px gold focus outline, 1120px content width. Checked at 1440, 768, 390 and 320: no text under 12px, no sideways scroll; the only text under 4.5:1 is the decorative "|" dividers in the title line (to become gold in Phase 2). Known: at 320px the header name wraps to two lines, to be fixed with the nav in Phase 4.
+- 2026-10-31: Design improvements under way on branch `design-improvements`, following Rishav's PORTFOLIO-DESIGN-IMPROVEMENTS brief in 6 phases, one at a time, with Rishav's review after each. `main` (the live site) is unchanged until the work is approved and merged. Phase 1 (foundations) done: type scale, spacing scale, 12px minimum text, muted text raised to ink/300, 2px gold focus outline, 1120px content width. Checked at 1440, 768, 390 and 320: no text under 12px, no sideways scroll; the only text under 4.5:1 is the decorative "|" dividers in the title line (to become gold in Phase 2). Known: at 320px the header name wraps to two lines, to be fixed with the nav in Phase 4. Phase 2 (hero) done: see Page content. The offset gold frame may appear at most once more on the page (one case-study cover).
 
 ## Decisions
 
 - 2026-10-31: Base is black (ink/900). Everything else is tentative.
 - 2026-10-31: Projects: EZ Brow & Beauty and PropertyPixel only. No outcomes shown.
-- 2026-10-31: Sections numbered with Roman numerals (I., II., III.) for the ordered, legal feel. Gold used only for the numerals, "sixth sense.", the case-study links and one short rule under the headshot.
+- 2026-10-31: Sections numbered with Roman numerals (I., II., III.) for the ordered, legal feel.
+- 2026-10-31: Gold budget (from the improvements brief): hero rule and offset frame, the availability dot, the eyebrow dividers, section and case-study numerals, link underlines and hover states, the active nav item. Never body text, fills or backgrounds; at most one gold rule per screen. "sixth sense." is no longer gold.
+- 2026-10-31: Tagline "Design is my sixth sense." kept in place for now (pending decision in the brief).
 - 2026-10-31: Nothing kept from the old site (stupa light, name dock animation, travel photos dropped).
