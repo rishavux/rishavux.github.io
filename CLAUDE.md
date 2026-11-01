@@ -20,7 +20,7 @@ A one-page portfolio to land a first full-time product design role. Live at http
 | File | What it holds |
 |---|---|
 | `index.html` | The whole page, top to bottom: header, hero, I. Selected Work, II. About, III. Contact, footer. |
-| `style.css` | Design tokens (copied from DESIGN.md) at the top, then layout. Breakpoints at 860px (stack columns) and 520px (phone). |
+| `style.css` | Design tokens (copied from DESIGN.md) at the top, plus the type scale (`--fs-display`, `--fs-h2`, `--fs-h3`, `--fs-statement`, `--fs-body`, `--fs-secondary`, `--fs-label`) and 8px spacing scale (`--space-1`…`--space-10`), then layout. Content width 1120px with the gutter outside it. Breakpoints at 860px (stack columns, section padding 80px) and 520px (phone); body text 18px from 1200px. |
 | `script.js` | `SETTINGS` at the top, each overridable from the URL (`?showHeadshot=false`, `?showSkills=false`). |
 | `images/headshot.webp` | Formal headshot (black suit, gray background). |
 | `images/cover-ez-brow.png`, `images/cover-propertypixel.webp` | Project covers, copied from the old site (`case-study-thumbnail.png`, `pp-mobile-mockup.webp`). |
@@ -45,6 +45,7 @@ Page "Portfolio v1" holds three frames side by side: Desktop — 1440 (`1:2`), T
 - 2026-10-31: v1 built and checked at desktop (1440px) and phone (375px) widths.
 - 2026-10-31: v1 replaced the old site at rishavux.github.io. Old site, plus its last uncommitted edits, saved on branch `old-site`.
 - 2026-10-31: Desktop, tablet and mobile versions captured into Figma (see Figma).
+- 2026-10-31: Design improvements under way on branch `design-improvements`, following Rishav's PORTFOLIO-DESIGN-IMPROVEMENTS brief in 6 phases, one at a time, with Rishav's review after each. `main` (the live site) is unchanged until the work is approved and merged. Phase 1 (foundations) done: type scale, spacing scale, 12px minimum text, muted text raised to ink/300, 2px gold focus outline, 1120px content width. Checked at 1440, 768, 390 and 320: no text under 12px, no sideways scroll; the only text under 4.5:1 is the decorative "|" dividers in the title line (to become gold in Phase 2). Known: at 320px the header name wraps to two lines, to be fixed with the nav in Phase 4.
 
 ## Decisions
 
