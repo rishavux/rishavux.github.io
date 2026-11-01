@@ -67,7 +67,7 @@ h1, h2, h3, h4, p, dl, dd, figure { margin:0; }
   border-bottom:1px solid var(--ink-700);
 }
 .header-row { position:relative; display:flex; align-items:center; justify-content:space-between; height:64px; }
-.wordmark { font:400 18px/1 var(--font-heading); color:var(--text); text-decoration:none; letter-spacing:.01em; white-space:nowrap; }
+.wordmark { display:inline-flex; align-items:center; min-height:44px; font:400 18px/1 var(--font-heading); color:var(--text); text-decoration:none; letter-spacing:.01em; white-space:nowrap; }
 .site-nav { display:flex; gap:clamp(var(--space-2), 3vw, var(--space-4)); }
 .site-nav a {
   position:relative; padding-block:8px;
@@ -234,7 +234,7 @@ h1, h2, h3, h4, p, dl, dd, figure { margin:0; }
 .contact-lead { font:400 clamp(2.5rem, 6vw, 5.5rem)/1.05 var(--font-heading); color:var(--text); max-width:16ch; letter-spacing:-.01em; }
 .contact-primary { display:flex; flex-direction:column; gap:var(--space-2); margin-top:var(--space-6); }
 .contact-email {
-  align-self:start;
+  align-self:start; display:inline-flex; align-items:center; min-height:44px;
   font:400 clamp(1.5rem, 3vw, 2.25rem)/1.2 var(--font-heading); color:var(--text);
   text-decoration:underline; text-decoration-color:var(--gold-800); text-decoration-thickness:1px; text-underline-offset:10px;
   transition:color .2s, text-decoration-color .2s;
@@ -245,7 +245,7 @@ h1, h2, h3, h4, p, dl, dd, figure { margin:0; }
   display:grid; grid-template-columns:160px 1fr; align-items:center; min-height:56px;
   padding:var(--space-1) 0; border-bottom:1px solid var(--ink-700);
 }
-.contact-list a { color:var(--text); text-decoration:none; font-size:17px; transition:color .2s; }
+.contact-list a { display:inline-flex; align-items:center; justify-self:start; min-height:44px; color:var(--text); text-decoration:none; font-size:17px; transition:color .2s; }
 .contact-list a::after {
   content:"→" / ""; display:inline-block; margin-left:10px; color:var(--gold-800);
   opacity:0; transform:translateX(-4px); transition:opacity .2s ease-out, transform .2s ease-out;
@@ -271,6 +271,17 @@ h1, h2, h3, h4, p, dl, dd, figure { margin:0; }
 .hero.no-portrait .hero-text { grid-column:1 / -1; }
 
 :focus-visible { outline:2px solid var(--gold-800); outline-offset:3px; }
+main:focus { outline:none; } /* focused only as the skip link's target */
+
+/* Skip link: hidden until a keyboard user tabs to it */
+.skip-link {
+  position:absolute; left:var(--gutter); top:-100px; z-index:20;
+  display:inline-flex; align-items:center; min-height:44px;
+  padding:0 var(--space-2); background:var(--ink-900); border:1px solid var(--gold-800);
+  font:500 var(--fs-label)/1 var(--font-body); letter-spacing:var(--tracking-label); text-transform:uppercase;
+  color:var(--text); text-decoration:none;
+}
+.skip-link:focus { top:12px; }
 
 /* Motion. Only for people who haven't asked for reduced motion, and only with JavaScript
    (so the page never stays hidden). No parallax, no cursor effects, nothing on loop. */
